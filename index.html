@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KEX — Project Hosting &amp; Developer Profiles</title>
+<meta name="description" content="Developer project hosting platform with nested folder uploads, public and private repositories, and customizable developer profiles.">
+<meta property="og:title" content="KEX — Project Hosting &amp; Developer Profiles">
+<meta property="og:description" content="Developer project hosting platform with nested folder uploads, public and private repositories, and customizable developer profiles.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;800&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<style>
+:root{--px:clamp(20px,5vw,110px);--bg:#dcdcde;--ink:#161617;--pn:#ececee;--ln:#bdbdc1;--mut:#5f5f64;--c-search:#161617;--c-read:#8a8a8f;--c-write:#55555a;--c-think:#8a8a8f66;--acc:#161617;--onacc:#ececee;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root:not([data-theme="light"]){}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark}}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .lt{}}
+:root[data-theme="dark"]{color-scheme:dark}
+*{box-sizing:border-box;margin:0}
+html{font-size:clamp(14px,.2vw + 11px,16.5px);scroll-behavior:smooth;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:#dcdcde;color:var(--ink);font:400 1rem/1.6 'Geist',system-ui,sans-serif;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+.mono{font-family:'Geist Mono',ui-monospace,monospace}
+.sec{padding:clamp(56px,6vw,110px) var(--px);background:var(--bg);color:var(--ink)}
+.sec.full{min-height:100vh;display:flex;flex-direction:column;justify-content:center}
+.dk{--bg:#1d1d1f;--ink:#ececee;--pn:#2a2a2d;--ln:#3d3d41;--mut:#a0a0a6;--c-search:#f4f4f5;--c-read:#7d7d83;--c-write:#b9b9be;--c-think:#a0a0a666;--acc:#ececee;--onacc:#1d1d1f}
+h1,h2,h3{line-height:1;letter-spacing:-.045em;font-weight:800}
+h2{font-size:clamp(1.7rem,3.1vw,3.3rem);max-width:20ch;letter-spacing:-.035em}
+.lead{color:var(--mut);max-width:60ch;margin-top:1rem;font-size:1rem}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:2rem;flex-wrap:wrap;margin-bottom:clamp(28px,3.5vw,64px)}
+svg.lucide{width:1.1em;height:1.1em;stroke-width:1.7;flex:none}
+.pn{background:var(--pn);border:1px solid var(--ln);border-radius:6px}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.chip{display:inline-flex;gap:.5rem;align-items:center;padding:.4rem .85rem;border:1px solid var(--ln);border-radius:999px;background:var(--pn);font-size:.88rem;color:var(--ink);transition:background .15s,border-color .15s}
+a.chip:hover{background:#e2e2e5;border-color:#9e9ea4}
+.chip.chip-ink{background:#161617;color:#ececee;border-color:#161617}
+.chip.chip-ink:hover{background:#2a2a2d;border-color:#2a2a2d}
+.ib{background:none;border:0;display:grid;place-items:center;padding:.4rem;border-radius:6px;color:var(--mut)}
+.ib:hover{color:var(--ink);background:#8882}
+/* hero */
+.hero{height:100vh;height:100svh;min-height:560px;overflow:hidden;display:flex;flex-direction:column;padding:clamp(14px,2vh,30px) var(--px) 0;background:#dcdcde;color:#161617;--pn:#ececee;--ln:#bdbdc1;--mut:#5f5f64;--ink:#161617}
+.top{display:flex;justify-content:space-between;align-items:center;gap:1rem}
+.brand{font-weight:800;font-size:1.6rem;letter-spacing:-.05em}
+.hrow{display:grid;gap:1.2rem;margin-top:clamp(12px,3vh,36px);align-items:end}
+@media(min-width:1000px){.hrow{grid-template-columns:6fr 4fr;gap:3rem}}
+.hero h1{font-size:clamp(2rem,min(4.6vw,8.5vh),5.2rem);letter-spacing:-.045em;line-height:1.02;max-width:16ch}
+.cmd{display:flex;align-items:center;gap:.7rem;margin-top:1.4rem;background:#161617;color:#ececee;border-radius:8px;padding:.8rem 1rem}
+.cmd code{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmd .ib{color:#a0a0a6}
+.cmd .ib:hover{color:#fff}
+.tstage{position:relative;flex:1;min-height:0;margin:clamp(6px,1.5vh,20px) calc(var(--px)*-1) 0}
+canvas{position:absolute;inset:0;width:100%;height:100%;cursor:grab;touch-action:pan-y;display:block}
+canvas:active{cursor:grabbing}
+.tbar{position:absolute;left:var(--px);right:var(--px);bottom:1.1rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;pointer-events:none;flex-wrap:wrap}
+.tbar>*{pointer-events:auto}
+.ro{background:#161617;color:#ececee;padding:.45rem .9rem;border-radius:999px;font-size:.85rem}
+.seg{display:flex;background:#161617;border-radius:999px;padding:3px}
+.seg button{border:0;background:none;padding:.35rem 1rem;border-radius:999px;color:#a0a0a6;font-size:.85rem}
+.seg button[aria-pressed=true]{background:#ececee;color:#161617}
+.lg{display:flex;align-items:center;gap:4px;font-size:.78rem;color:#5f5f64}
+.lg s{width:.8rem;height:.8rem;border-radius:3px;display:block}
+/* tip */
+#tip{position:fixed;z-index:60;pointer-events:none;background:#ececee;color:#161617;font-size:.82rem;padding:.4rem .7rem;border-radius:6px;max-width:260px;opacity:0;transform:scale(.8);transform-origin:bottom center;transition:opacity .12s,transform .28s cubic-bezier(.34,1.56,.64,1),left .18s,top .18s;box-shadow:0 0 0 1px #0002}
+#tip.on{opacity:1;transform:scale(1)}
+/* hover card */
+.hc{position:relative}
+.hc .pop{position:absolute;left:50%;bottom:calc(100% + 10px);width:min(300px,80vw);z-index:30;background:#161617;color:#d4d4d7;border-radius:8px;padding:1rem;font-size:.86rem;line-height:1.5;opacity:0;pointer-events:none;transform:translateX(-50%) scale(.85);transform-origin:bottom center;transition:opacity .15s,transform .3s cubic-bezier(.34,1.56,.64,1)}
+.dk .hc .pop{background:#ececee;color:#2a2a2d}
+.hc:hover .pop,.hc:focus-within .pop{opacity:1;transform:translateX(-50%)}
+.pop b{display:block;margin-bottom:.25rem;font-size:.95rem}
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--ln);border:1px solid var(--ln)}
+@media(min-width:900px){.stats{grid-template-columns:repeat(6,1fr)}}
+.stat{background:var(--bg);padding:clamp(18px,2.4vw,44px)}
+.stat b{display:block;font-size:clamp(2rem,3.6vw,4rem);font-weight:800;letter-spacing:-.06em;line-height:.9}
+.stat span{color:var(--mut);font-size:.9rem}
+/* maps */
+.mapbox{padding:clamp(10px,1.5vw,28px);overflow-x:auto}
+.map{min-width:900px;width:100%;height:auto;display:block}
+.map .node rect{fill:var(--bg);stroke:var(--ln);stroke-width:1.2;transition:fill .2s,stroke .2s}
+.map .node text{fill:var(--ink);font-size:13.5px;font-weight:600;transition:fill .2s}
+.map .node{cursor:pointer}
+.map .node.hi rect{fill:var(--ink);stroke:var(--ink)}
+.map .node.hi text{fill:var(--bg)}
+.map .edge{fill:none;stroke:var(--ln);stroke-width:1.4;transition:stroke .2s,opacity .2s}
+.map .edge.hi{stroke:var(--ink);stroke-width:2.4}
+.map.dim .edge:not(.hi){opacity:.35}
+.map .col{fill:var(--mut);font-size:12px}
+.chips{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1.4rem}
+/* workflows */
+.tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.4rem}
+.tabs button{border:1px solid var(--ln);background:none;border-radius:999px;padding:.45rem 1.1rem}
+.tabs button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.cmds{display:flex;flex-wrap:wrap;gap:.7rem;min-height:9rem;align-content:flex-start}
+.cmds span{font-size:clamp(.9rem,1vw,1.1rem);padding:.45rem .9rem;border:1px solid var(--ln);border-radius:8px;background:var(--pn);animation:pop .3s both}
+.cmds span:hover{background:var(--ink);color:var(--bg)}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.96)}}
+.pipe{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-top:2.2rem;color:var(--mut);font-size:.92rem}
+.pipe .chip{background:none}
+/* lanes */
+.lanes{padding:clamp(14px,2vw,34px)}
+.lhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+.lrow{display:flex;height:3rem;align-items:center;border-bottom:1px dashed var(--ln)}
+.lname{width:clamp(88px,10vw,150px);flex:none;font-size:.92rem;color:var(--mut);display:flex;gap:.5rem;align-items:center}
+.lname.done{color:var(--ink)}
+.track{position:relative;flex:1;height:100%}
+.bar{position:absolute;top:.8rem;height:1.4rem;border-radius:4px;overflow:hidden;cursor:pointer;border:1px solid var(--ln);background:var(--bg);padding:0}
+.bar span{position:absolute;inset:0;transform-origin:left;transform:scaleX(0)}
+.k-search{background:var(--c-search)}.k-read{background:var(--c-read)}.k-write{background:var(--c-write)}.k-think{background:repeating-linear-gradient(135deg,var(--c-think) 0 2px,transparent 2px 6px)}
+.ph{position:absolute;top:0;bottom:0;width:1px;background:var(--ink);pointer-events:none}
+.scrub{display:flex;align-items:center;margin-top:.6rem}
+.scrub input{flex:1;accent-color:var(--ink)}
+.log{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--ln);font-size:.92rem;min-height:9rem;color:var(--mut)}
+.log p{display:flex;gap:.6rem;margin-bottom:.3rem}.log b{color:var(--ink);font-weight:600;min-width:4.5rem}
+/* steps */
+.steps{display:grid;gap:1rem;position:relative}
+@media(min-width:900px){.steps{grid-template-columns:repeat(6,1fr)}}
+.step{padding:1.2rem;min-height:12rem;display:flex;flex-direction:column;justify-content:space-between;opacity:.35;transform:translateY(10px);transition:opacity .5s,transform .5s,background .3s}
+.step.on{opacity:1;transform:none}
+.step:hover{background:var(--ink);color:var(--bg)}
+.step:hover p{color:inherit}
+.step svg{width:2rem;height:2rem}
+.step h3{font-size:1.2rem;margin-bottom:.4rem}
+.step p{color:var(--mut);font-size:.9rem;line-height:1.45}
+.prog{height:3px;background:var(--ln);margin-bottom:1rem;border-radius:2px;overflow:hidden}.prog i{display:block;height:100%;width:0;background:var(--ink);transition:width 3s linear}
+/* table + ladder */
+.two{display:grid;gap:clamp(20px,3vw,56px)}
+@media(min-width:1000px){.two{grid-template-columns:3fr 2fr}}
+.tbl{width:100%;border-collapse:collapse;font-size:.98rem}
+.tbl th{text-align:left;color:var(--mut);font-weight:400;padding:.7rem 1rem;border-bottom:1px solid var(--ln)}
+.tbl td{padding:1rem;border-bottom:1px solid var(--ln)}
+.tbl tr:hover td{background:var(--pn)}
+.ladder{display:flex;align-items:flex-end;gap:.6rem;height:15rem;padding:1.4rem}
+.rung{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;cursor:default}
+.rung i{display:block;background:var(--ink);border-radius:4px 4px 0 0;height:0;transition:height 1s cubic-bezier(.23,1,.32,1);opacity:.25}
+.rung:last-child i{opacity:1}.rung span{font-size:.78rem;margin-top:.5rem;color:var(--mut);text-align:center}
+.rung:hover i{opacity:1}
+/* bars */
+.brow{display:grid;grid-template-columns:7rem 1fr 2.2rem;gap:.8rem;align-items:center;margin:.9rem 0;font-size:.95rem}
+.btrack{height:1.1rem;background:var(--bg);border-radius:4px;overflow:hidden}
+.btrack i{display:block;height:100%;width:0;background:var(--ink);transition:width 1.1s cubic-bezier(.23,1,.32,1)}
+.brow:hover .btrack i{opacity:.55}
+.num{text-align:right;color:var(--mut)}
+.chart{padding:clamp(18px,2.4vw,40px)}
+.donut{display:grid;place-items:center;gap:1rem;text-align:center;color:var(--mut)}
+/* grids */
+.grid{display:grid;gap:1rem}
+.g3{grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))}
+.card{padding:1.4rem;min-height:10rem;display:flex;flex-direction:column;gap:.6rem;transition:background .25s,color .25s}
+.card svg{width:1.8rem;height:1.8rem;margin-bottom:auto}
+.card h3{font-size:1.2rem}.card p{color:var(--mut);font-size:.95rem}
+.card:hover{background:var(--ink);color:var(--bg)}.card:hover p{color:inherit}
+.os{padding:1.6rem;display:flex;flex-direction:column;gap:1rem}
+.os h3{font-size:1.6rem;display:flex;align-items:center;gap:.7rem}
+.arch{display:flex;gap:.6rem;flex-wrap:wrap}
+.road{display:grid;gap:0}
+/* faq */
+.faq{display:grid;gap:2rem}
+@media(min-width:1000px){.faq{grid-template-columns:4fr 6fr}}
+.ai{border-bottom:1px solid var(--ln)}
+.ai>button{width:100%;text-align:left;background:none;border:0;padding:1.4rem 0;display:flex;justify-content:space-between;align-items:center;gap:1rem;font-size:clamp(1rem,1.15vw,1.3rem);font-weight:600;letter-spacing:-.02em}
+.ai svg{transition:transform .3s}.ai.open svg{transform:rotate(180deg)}
+.pnl{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s cubic-bezier(.215,.61,.355,1)}
+.pnl>div{overflow:hidden;opacity:0;filter:blur(2px);transition:opacity .35s,filter .35s;color:var(--mut)}
+.ai.open .pnl{grid-template-rows:1fr}.ai.open .pnl>div{opacity:1;filter:none}
+.pnl p{padding-bottom:1.4rem;max-width:64ch}
+/* cta */
+.cta{text-align:left}
+.cta h2{font-size:clamp(2rem,5.2vw,5.6rem);max-width:18ch;letter-spacing:-.05em}
+.rprog{height:3px;background:var(--ln);border-radius:2px;margin-bottom:1rem;overflow:hidden}.rprog i{display:block;height:100%;width:0;background:var(--ink);transition:width .5s cubic-bezier(.23,1,.32,1)}
+.rail{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.6rem}
+.rb{text-align:left;background:var(--pn);border:1px solid var(--ln);border-radius:6px;padding:.9rem;display:flex;flex-direction:column;gap:.5rem;min-height:9rem;transition:background .25s,color .25s,transform .25s}
+.rb:hover{transform:translateY(-3px)}
+.rb[aria-selected=true]{background:var(--ink);color:var(--bg)}
+.rn{font-size:.8rem;opacity:.6}.rt{font-weight:600;font-size:1rem;line-height:1.15;letter-spacing:-.02em;flex:1}
+.rbar{height:5px;background:#8883;border-radius:3px;overflow:hidden}.rbar i{display:block;height:100%;background:currentColor;opacity:.75}
+.rb em{font-style:normal;font-size:.75rem;opacity:.65}
+.rdet{margin-top:.6rem;padding:clamp(18px,2.4vw,40px)}
+.rd{display:grid;gap:1.6rem;animation:pop .35s both}
+@media(min-width:900px){.rd{grid-template-columns:1fr 1.2fr}}
+.rd h3{font-size:clamp(1.6rem,2.6vw,2.8rem);margin:.5rem 0 1rem}
+.ex{color:var(--mut);max-width:52ch}.ex b{display:block;color:var(--ink);margin-bottom:.25rem}
+.rd ul{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:0 1.2rem;align-content:start}
+.rd li{display:flex;gap:.6rem;align-items:flex-start;font-size:.95rem;padding:.55rem 0;border-bottom:1px solid var(--ln)}
+.ft{padding-bottom:1.4rem}
+.fcols{display:grid;gap:2rem;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+@media(min-width:900px){.fcols{grid-template-columns:1.8fr repeat(4,1fr)}}
+.fcols h4{font-size:.85rem;color:var(--mut);font-weight:400;margin-bottom:.8rem}
+.fcols a{display:block;color:var(--ink);text-decoration:none;padding:.2rem 0;font-size:.95rem;width:fit-content;background:linear-gradient(currentColor,currentColor) 0 100%/0 1px no-repeat;transition:background-size .25s}
+.fcols a:hover{background-size:100% 1px}
+.fmark{font-weight:800;letter-spacing:-.08em;line-height:.85;font-size:clamp(4rem,15vw,13rem);color:var(--ln);margin:clamp(24px,4vw,60px) 0 .6rem;user-select:none;overflow:hidden}
+.fbot{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:center;padding-top:1.1rem;border-top:1px solid var(--ln);color:var(--mut);font-size:.85rem}
+@media(prefers-reduced-motion:reduce){*{transition-duration:.01s!important;animation:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="top">
+    <a href="/" class="brand">kex</a>
+    <div id="top-nav" style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <a class="chip" href="/explore" data-tip="Browse public repositories and developer profiles"><i data-lucide="compass"></i>Explore</a>
+      <a class="chip" href="/login" id="nav-signin" data-tip="Sign in to your KEX workspace"><i data-lucide="log-in"></i>Sign in</a>
+      <a class="chip chip-ink" href="/login#signup" id="nav-signup" data-tip="Create a free developer account"><i data-lucide="user-plus"></i>Create account</a>
+    </div>
+  </div>
+  <div class="hrow">
+    <h1>kex: project hosting and developer profiles.</h1>
+    <div>
+      <p class="lead" style="margin-top:0">Upload complete local project folders while preserving nested directory structures, enforce public or private access on the server, and maintain your own developer profile with README.md.</p>
+      <div class="cmd mono">
+        <i data-lucide="folder-tree"></i>
+        <code>kex.dev/:owner/:repo · nested folders preserved</code>
+        <a class="ib" href="/new" aria-label="Upload project folder" data-tip="Create repository & upload folder"><i data-lucide="upload"></i></a>
+        <button class="ib" id="copy" aria-label="Copy route format" data-tip="Copy route format"><i data-lucide="copy"></i></button>
+      </div>
+    </div>
+  </div>
+  <div class="tstage">
+    <canvas id="cv" role="img" aria-label="26-week KEX repository and profile activity terrain. Hover or drag to explore." tabindex="0"></canvas>
+    <div class="tbar">
+      <span class="ro mono" id="readout" aria-live="polite"></span>
+      <div class="lg"><span>Activity · Less</span><s style="background:#c4c4c7"></s><s style="background:#a2a2a6"></s><s style="background:#76767b"></s><s style="background:#46464a"></s><s style="background:#1a1a1c"></s><span>More</span></div>
+      <div class="seg"><button data-v="flat" aria-pressed="true">Flat</button><button data-v="terr" aria-pressed="false">Terrain</button></div>
+    </div>
+  </div>
+</header>
+
+<section class="sec dk"><div class="stats" id="stats"></div></section>
+
+<section class="sec full" id="arch">
+  <div class="head"><h2>The whole system on one map</h2><p class="lead" style="max-width:44ch">Every request passes through server-side authentication and ownership checks. Metadata lives in SQLite, uploaded project files and profile visuals live in scoped object storage.</p></div>
+  <div class="pn mapbox"><svg class="map" id="map" viewBox="0 0 1200 440" role="img" aria-label="KEX project hosting system architecture map"></svg></div>
+  <div class="chips" id="hcs"></div>
+</section>
+
+<section class="sec full dk" id="cli">
+  <div class="head"><h2>One server API, clear workflows</h2><p class="lead" style="max-width:44ch">Every workflow—folder upload, immediate-child browsing, private access control, and profile README editing—maps to clean, authenticated endpoints. Pick a group.</p></div>
+  <div class="tabs" id="tabs"></div>
+  <div class="cmds mono" id="cmds"></div>
+  <div class="pipe" id="pipe"></div>
+</section>
+
+<section class="sec full" id="flow">
+  <div class="head"><h2>Watch a folder upload fan out</h2><p class="lead" style="max-width:44ch">Select a local folder, strip the wrapper directory, normalize every relative path, verify access, store bytes safely, and index the tree. Play, scrub, hover.</p></div>
+  <div class="pn lanes">
+    <div class="lhead"><span id="status" class="mono" style="color:var(--mut)">Ready</span><button class="ib" id="play" aria-label="Play"><i data-lucide="play"></i></button></div>
+    <div id="lanes"></div>
+    <div class="scrub"><span style="width:clamp(88px,10vw,150px)"></span><input id="range" type="range" min="0" max="10" step="0.1" value="0" aria-label="Upload timeline"></div>
+    <div class="log" id="log"></div>
+  </div>
+</section>
+
+<section class="sec full dk" id="publish">
+  <div class="head"><h2>From local folder to browsable tree</h2><p class="lead" style="max-width:44ch">Relative paths like src/components/Button.svelte are validated server-side and rolled back cleanly if any file fails.</p></div>
+  <div class="prog"><i id="prog"></i></div>
+  <div class="steps" id="steps"></div>
+</section>
+
+<section class="sec full" id="compat">
+  <div class="head"><h2>Core capabilities, verified by tests</h2><p class="lead" style="max-width:44ch">Every project-hosting and developer-profile requirement is backed by server-side enforcement and automated tests.</p></div>
+  <div class="two">
+    <div class="pn" style="overflow-x:auto"><table class="tbl" id="tbl"></table></div>
+    <div class="pn"><div class="ladder" id="ladder"></div><p class="lead" style="margin:0;padding:0 1.4rem 1.4rem;font-size:.92rem">Verification ladder for every feature. Nothing ships without server-side access checks and tests.</p></div>
+  </div>
+</section>
+
+<section class="sec full dk" id="repo">
+  <div class="head"><h2>What’s inside KEX</h2><p class="lead" style="max-width:44ch">Zero-cost, self-hosted TypeScript architecture: Express API routes, SQLite persistence, scoped filesystem storage, and native browser interfaces.</p></div>
+  <div class="two" style="grid-template-columns:1fr">
+    <div class="two" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))">
+      <div class="pn chart" id="bars"></div>
+      <div class="pn chart donut"><svg id="ring" viewBox="0 0 120 120" style="width:min(100%,340px)" role="img" aria-label="Server versus client module breakdown"></svg><p id="ringcap"></p></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="db">
+  <div class="head"><h2>Core data model</h2><p class="lead" style="max-width:44ch">Relational metadata in SQLite: users, profiles without avatars, selected images, social links, profile READMEs, repositories, and nested file records.</p></div>
+  <div class="pn mapbox"><svg class="map" id="dbmap" viewBox="0 0 860 190" style="min-width:760px;max-width:960px;margin:0 auto" role="img" aria-label="Core database entities"></svg></div>
+  <div class="grid g4" id="dbcards" style="margin-top:1rem"></div>
+</section>
+
+<section class="sec full dk" id="security">
+  <div class="head"><h2>Security is a layer, not a feature</h2><p class="lead" style="max-width:44ch">Private repository authorization, path traversal rejection, Markdown sanitization, and safe file downloads are built into the backend.</p></div>
+  <div class="grid g3" id="sec"></div>
+</section>
+
+<section class="sec full" id="web">
+  <div class="head"><h2>Every screen built for developers</h2><p class="lead" style="max-width:44ch">Discovery for visitors, workspace control for owners, immediate-child file browsing, and customizable text-first profiles.</p></div>
+  <div class="grid g4" id="pages"></div>
+</section>
+
+<section class="sec full dk" id="stack">
+  <div class="head"><h2>The stack, and why</h2><p class="lead" style="max-width:44ch">Hover any block for the reason. Self-hosted and free to run with zero external paid dependencies.</p></div>
+  <div class="grid g4" id="stackg"></div>
+</section>
+
+<section class="sec full" id="platforms">
+  <div class="head"><h2>Three core pillars</h2><p class="lead" style="max-width:44ch">Project folder hosting, strict public/private access control, and avatar-free developer profiles with editable README.md.</p></div>
+  <div class="grid g3" id="os"></div>
+  <div class="chips" id="rel" style="margin-top:2rem"></div>
+</section>
+
+<section class="sec dk" id="road">
+  <div class="head"><h2>Six stages from foundation to verification</h2></div>
+  <div class="road" id="roadmap"></div>
+</section>
+
+<section class="sec full" id="why">
+  <div class="head"><h2>Rules the project lives by</h2></div>
+  <div class="grid g3" id="feats"></div>
+</section>
+
+<section class="sec full dk" id="faq">
+  <div class="faq"><h2>Questions, answered plainly</h2><div id="acc"></div></div>
+</section>
+
+<section class="sec cta">
+  <h2>Host your folders. Own your developer profile.</h2>
+  <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.6rem">
+    <a class="cmd mono" href="/login#signup" style="margin-top:0;background:#161617"><i data-lucide="user-plus"></i><span>Create free account</span><i data-lucide="arrow-right"></i></a>
+    <a class="chip" href="/explore" style="padding:.8rem 1.2rem;border-radius:8px"><i data-lucide="compass"></i>Explore repositories</a>
+  </div>
+</section>
+
+<footer class="sec dk ft">
+  <div class="fcols">
+    <div><div class="brand">kex</div><p class="lead" style="font-size:.92rem;max-width:32ch">Free self-hosted project hosting with nested folder uploads, public/private repositories, and developer profiles.</p></div>
+    <div><h4>Workspace</h4><a href="/explore">Explore projects</a><a href="/new">New repository</a><a href="/dashboard">Dashboard</a><a href="/login">Sign in</a></div>
+    <div><h4>Architecture</h4><a href="#arch">System map</a><a href="#cli">API routes</a><a href="#flow">Folder upload</a><a href="#publish">Storage rules</a></div>
+    <div><h4>Platform</h4><a href="#compat">Capabilities</a><a href="#db">Data model</a><a href="#security">Security</a><a href="#stack">Free stack</a></div>
+    <div><h4>Guide</h4><a href="#platforms">Core pillars</a><a href="#road">Stages</a><a href="#why">Principles</a><a href="#faq">FAQ</a></div>
+  </div>
+  <div class="fmark" aria-hidden="true">kex</div>
+  <div class="fbot"><span>Repositories · Nested Folders · Developer Profiles</span><span>100% free &amp; self-hosted · No profile avatars</span><button class="chip" id="top"><i data-lucide="arrow-up"></i>Back to top</button></div>
+</footer>
+
+<div id="tip" role="tooltip"></div>
+
+<script>
+const $=s=>document.querySelector(s),NS='http://www.w3.org/2000/svg',RM=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const icons=()=>{try{lucide.createIcons()}catch(e){}};
+const tip=$('#tip');
+function showTip(el,t){tip.textContent=t;tip.classList.add('on');const r=el.getBoundingClientRect(),w=tip.offsetWidth;tip.style.left=Math.max(8,Math.min(innerWidth-w-8,r.left+r.width/2-w/2))+'px';tip.style.top=Math.max(8,r.top-tip.offsetHeight-10)+'px'}
+const hideTip=()=>tip.classList.remove('on');
+function bindTip(el,f){el.addEventListener('pointerenter',()=>showTip(el,f()));el.addEventListener('pointerleave',hideTip);el.addEventListener('focus',()=>showTip(el,f()));el.addEventListener('blur',hideTip)}
+document.querySelectorAll('[data-tip]').forEach(e=>bindTip(e,()=>e.dataset.tip));
+addEventListener('scroll',hideTip,{passive:true});
+$('#copy').onclick=()=>{try{navigator.clipboard.writeText('kex.dev/:owner/:repo')}catch(e){}showTip($('#copy'),'Copied')};
+const once=(el,fn,th=.25)=>new IntersectionObserver(([e],o)=>{if(e.isIntersecting){fn();o.disconnect()}},{threshold:th}).observe(el);
+const hc=(inner,pop)=>`<div class="hc" tabindex="0">${inner}<div class="pop" role="tooltip">${pop}</div></div>`;
+
+/* ---------- auth & live stats check ---------- */
+(async()=>{
+  try{
+    const r=await fetch('/api/me',{credentials:'same-origin'});
+    if(r.ok){
+      const d=await r.json();
+      if(d&&d.user){
+        const s1=$('#nav-signin'),s2=$('#nav-signup');
+        if(s1){s1.href='/dashboard';s1.innerHTML='<i data-lucide="layout-dashboard"></i>Dashboard';}
+        if(s2){s2.href='/'+encodeURIComponent(d.user.username);s2.innerHTML='<i data-lucide="user-round"></i>@'+d.user.username.replace(/[<>&"]/g,'');}
+        icons();
+      }
+    }
+  }catch{}
+  try{
+    const rs=await fetch('/api/stats');
+    if(rs.ok){
+      const st=await rs.json();
+      const rd=$('#readout');
+      if(rd&&typeof st.publicRepositories==='number'){
+        rd.dataset.live=`${st.publicRepositories} public repos · ${st.publicFiles} files · ${st.developers} developers`;
+      }
+    }
+  }catch{}
+})();
+
+/* ---------- terrain ---------- */
+(()=>{
+ const cv=$('#cv'),ctx=cv.getContext('2d'),W=26,D=7,G=.18,MH=4.2,DEG=Math.PI/180,PT=56*DEG,YT=18*DEG,YL=38*DEG,PL=66*DEG;
+ let seed=7;const rnd=()=>(seed=seed*16807%2147483647)/2147483647;
+ const data=[];for(let i=0;i<W*D;i++){const we=i%D>=5,s=.55+.45*Math.sin(i/23),st=rnd()>.82?2.2:1,q=rnd()<(we?.55:.12);data.push(q?0:Math.round((we?3:9)*s*st*rnd()))}
+ const mx=Math.max(1,...data),end=Date.UTC(2026,10,27),total=data.reduce((a,b)=>a+b,0);
+ const cells=data.map((n,i)=>{const nm=n/mx;return{i,c:Math.floor(i/D),r:i%D,n,lv:n?Math.ceil(nm*4):0,h:.06+Math.pow(nm,.85)*MH,d:new Date(end-(data.length-1-i)*864e5)}});
+ const pal=['#c4c4c7','#a2a2a6','#76767b','#46464a','#1a1a1c'],shade=(h,k)=>{const n=parseInt(h.slice(1),16);return`rgb(${[n>>16,n>>8&255,n&255].map(v=>Math.round(v*(1-k)))})`};
+ const S={yaw:0,pitch:0,ty:YT,tp:0,hov:-1,drag:null,w:0,h:0,dpr:1,raf:0,ox:W,oy:3,sc:1,cx:0,cy:0};
+ const ease=t=>{const u=t-1;return 1+2.4*u*u*u+1.4*u*u};
+ const pr=(x,y,z)=>{const c=Math.cos(S.yaw),s=Math.sin(S.yaw),xr=x*c-z*s,zr=x*s+z*c;return[S.cx+xr*S.sc,S.cy+(zr*Math.cos(S.pitch)-y*Math.sin(S.pitch))*S.sc]};
+ const hOf=(c,l)=>{const d=Math.hypot(c.c-S.ox,c.r-S.oy)/Math.hypot(W,D),t=Math.min(1,Math.max(0,l*1.7-d*.7));return c.h*ease(t)+(c.i===S.hov&&S.pitch>.1?.4:0)};
+ function faces(c,h){const x0=c.c-W/2,z0=c.r-D/2,x1=x0+1-G,z1=z0+1-G,p=pr,f=[],cs=Math.cos(S.yaw),sn=Math.sin(S.yaw);
+  if(h>.02&&S.pitch>.01){const z=cs>0?z1:z0;f.push({p:[p(x0,0,z),p(x1,0,z),p(x1,h,z),p(x0,h,z)],k:.22});const x=sn>0?x1:x0;f.push({p:[p(x,0,z0),p(x,0,z1),p(x,h,z1),p(x,h,z0)],k:.38})}
+  f.push({p:[p(x0,h,z0),p(x1,h,z0),p(x1,h,z1),p(x0,h,z1)],k:0});return f}
+ const order=()=>{const s=Math.sin(S.yaw),c=Math.cos(S.yaw);return[...cells].sort((a,b)=>((a.c+.5-W/2)*s+(a.r+.5-D/2)*c)-((b.c+.5-W/2)*s+(b.r+.5-D/2)*c))};
+ function layout(){const lift=Math.min(1,S.pitch/PT);S.sc=1;S.cx=0;S.cy=0;let a=[1e9,-1e9,1e9,-1e9];
+  for(const[x,z]of[[0,0],[W,0],[0,D],[W,D]])for(const y of[0,MH*lift]){const[px,py]=pr(x-W/2,y,z-D/2);a=[Math.min(a[0],px),Math.max(a[1],px),Math.min(a[2],py),Math.max(a[3],py)]}
+  S.sc=Math.min((S.w*.94)/(a[1]-a[0]),(S.h-70)/(a[3]-a[2]));S.cx=S.w/2-(a[0]+a[1])/2*S.sc;S.cy=(S.h-40)/2-(a[2]+a[3])/2*S.sc;return lift}
+ function draw(){const lift=layout();ctx.setTransform(S.dpr,0,0,S.dpr,0,0);ctx.clearRect(0,0,S.w,S.h);ctx.lineJoin='round';
+  for(const c of order()){const col=c.i===S.hov?'#ffffff':pal[c.lv];for(const f of faces(c,hOf(c,lift))){ctx.beginPath();f.p.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();const fl=shade(col,f.k);ctx.fillStyle=fl;ctx.fill();ctx.strokeStyle=fl;ctx.lineWidth=.6;ctx.stroke()}}}
+ const inside=(pts,x,y)=>{let h=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const[xi,yi]=pts[i],[xj,yj]=pts[j];if((yi>y)!==(yj>y)&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)h=!h}return h};
+ function hit(x,y){const lift=layout(),l=order();for(let i=l.length-1;i>=0;i--)for(const f of faces(l[i],hOf(l[i],lift)))if(inside(f.p,x,y))return l[i];return null}
+ function frame(){S.raf=0;let mv=!!S.drag;if(!S.drag){const ty=S.tp?Math.max(-YL,Math.min(YL,S.yaw)):0,t2=S.tp&&S.intro?S.ty:ty;S.yaw+=(t2-S.yaw)*.14;S.pitch+=(S.tp-S.pitch)*.14;if(Math.abs(S.yaw-S.ty)<.01)S.intro=false;mv=Math.abs(t2-S.yaw)>5e-4||Math.abs(S.tp-S.pitch)>5e-4}
+  draw();if(mv)S.raf=requestAnimationFrame(frame)}
+ const wake=()=>{if(!S.raf)S.raf=requestAnimationFrame(frame)};
+ const rd=$('#readout'),fmt=d=>d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'}),idle=`${total.toLocaleString()} uploads in 26 weeks`;
+ function hover(c){const i=c?c.i:-1;if(i!==S.hov){S.hov=i;rd.textContent=c?`${c.n} ${c.n==1?'upload':'uploads'} on ${fmt(c.d)}`:(rd.dataset.live||idle);wake()}}
+ const pt=e=>{const r=cv.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+ cv.onpointerdown=e=>{cv.setPointerCapture(e.pointerId);const c=hit(...pt(e));if(c){S.ox=c.c;S.oy=c.r}hover(c);S.drag={x:e.clientX,y:e.clientY,yaw:S.yaw,p:S.pitch,m:false};S.intro=false};
+ cv.onpointermove=e=>{const d=S.drag;if(!d){if(e.pointerType==='mouse')hover(hit(...pt(e)));return}const dx=e.clientX-d.x,dy=e.clientY-d.y;if(!d.m&&Math.hypot(dx,dy)>4)d.m=true;if(!d.m)return;
+  S.yaw=Math.max(-YL,Math.min(YL,d.yaw+dx*.32*DEG));S.pitch=Math.max(0,Math.min(PL,d.p+dy*.36*DEG));wake()};
+ const up=()=>{const d=S.drag;if(!d)return;S.drag=null;if(d.m){S.tp=S.pitch<PT/2?0:PT;sync()}wake()};
+ cv.onpointerup=up;cv.onpointercancel=up;cv.onpointerleave=e=>{if(!S.drag&&e.pointerType==='mouse')hover(null)};
+ cv.onkeydown=e=>{const m={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(!m)return;e.preventDefault();const cur=cells[S.hov]||cells.at(-1);hover(cells.find(c=>c.c==cur.c+m[0]&&c.r==cur.r+m[1])||cur)};
+ cv.onblur=()=>hover(null);
+ const btns=document.querySelectorAll('.seg button'),sync=()=>btns.forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.v==='flat')===(S.tp===0))));
+ const setMode=t=>{S.tp=t?PT:0;S.ox=t?0:W;S.oy=3;if(t&&Math.abs(S.yaw)<.02){S.yaw=0;S.intro=true}sync();if(RM){S.pitch=S.tp;S.yaw=t?YT:0;S.intro=false;draw()}else wake()};
+ btns.forEach(b=>b.onclick=()=>setMode(b.dataset.v!=='flat'));
+ let lastT=null;const onScroll=()=>{const t=scrollY>24;if(t!==lastT){lastT=t;setMode(t)}};
+ addEventListener('scroll',onScroll,{passive:true});
+ new ResizeObserver(([en])=>{S.w=en.contentRect.width;S.h=en.contentRect.height;S.dpr=Math.min(devicePixelRatio||1,2);cv.width=S.w*S.dpr;cv.height=S.h*S.dpr;draw()}).observe(cv);
+ S.ox=W;S.intro=false;onScroll();
+ rd.textContent=idle;
+})();
+
+/* ---------- generic map ---------- */
+function buildMap(svg,cfg){
+ const mk=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e};
+ const {cols,nodes:N,edges:E,bw,bh,rh,top}=cfg,Y=r=>top+r*rh;
+ cols.forEach(([x,l])=>{mk('text',{x,y:14,class:'col'}).textContent=l});
+ const ed=E.map(([a,b])=>{const A=N[a],B=N[b],x1=cols[A[0]][0]+bw,y1=Y(A[1])+bh/2,x2=cols[B[0]][0],y2=Y(B[1])+bh/2,m=(x1+x2)/2;return{a,b,el:mk('path',{class:'edge',d:`M${x1} ${y1}C${m} ${y1} ${m} ${y2} ${x2} ${y2}`})}});
+ const g={};
+ for(const k in N){const[c,r,t,d]=N[k],n=mk('g',{class:'node',tabindex:0,transform:`translate(${cols[c][0]} ${Y(r)})`});mk('rect',{width:bw,height:bh,rx:6},n);mk('text',{x:bw/2,y:bh/2+4.5,'text-anchor':'middle'},n).textContent=t;g[k]=n;
+  const on=()=>{svg.classList.add('dim');ed.forEach(e=>{const h=e.a===k||e.b===k;e.el.classList.toggle('hi',h);if(h){g[e.a]&&g[e.a].classList.add('hi');g[e.b]&&g[e.b].classList.add('hi')}});n.classList.add('hi');showTip(n,d)};
+  const off=()=>{svg.classList.remove('dim');ed.forEach(e=>e.el.classList.remove('hi'));Object.values(g).forEach(x=>x.classList.remove('hi'));hideTip()};
+  n.addEventListener('pointerenter',on);n.addEventListener('pointerleave',off);n.addEventListener('focus',on);n.addEventListener('blur',off)}
+}
+buildMap($('#map'),{bw:170,bh:46,rh:68,top:28,cols:[[20,'Browser'],[270,'API Entry'],[520,'Services'],[800,'Storage'],[1010,'Delivery']],
+ nodes:{
+  pick:[0,0,'Folder Picker','Selects local directories while preserving relative file paths.'],
+  web:[0,1,'KEX Web App','Explore, Dashboard, Repository Browser, and Developer Profile.'],
+  prof:[0,2,'Profile & README','Edit/Preview Markdown editor and selected image manager (no avatars).'],
+  gw:[1,1,'Express API','Routes requests, validates inputs, enforces CSRF & rate limits.'],
+  auth:[2,0,'Auth & Sessions','Scrypt passwords, HttpOnly session cookies, ownership checks.'],
+  repo:[2,1,'Repository Service','Creates public/private repos and controls README visibility.'],
+  tree:[2,2,'Tree & File Service','Immediate-child directory listings and safe text/binary reads.'],
+  upl:[2,3,'Upload Service','Normalizes paths, rejects traversal, detects duplicate conflicts.'],
+  psvc:[2,4,'Profile Service','Display info, public field toggles, selected images, social links.'],
+  md:[2,5,'Markdown Service','Parses and sanitizes Profile and Repository READMEs against XSS.'],
+  db:[3,1,'SQLite Database','Users, sessions, profiles, social links, repositories, file metadata.'],
+  sto:[3,3,'Object Storage','Scoped local filesystem storage for repo files and profile images.'],
+  dl:[4,2,'Safe Responses','Attachment downloads with nosniff headers; zero origin execution.']
+ },
+ edges:[['pick','gw'],['web','gw'],['prof','gw'],['gw','auth'],['gw','repo'],['gw','tree'],['gw','upl'],['gw','psvc'],['gw','md'],['auth','db'],['repo','db'],['tree','db'],['tree','sto'],['upl','db'],['upl','sto'],['psvc','db'],['psvc','sto'],['tree','dl'],['sto','dl']]
+});
+
+buildMap($('#dbmap'),{bw:180,bh:56,rh:76,top:28,cols:[[10,'Identity'],[230,'Profile & Bio'],[450,'Repositories'],[670,'Files & Media']],
+ nodes:{
+  usr:[0,0,'users','id, username, email, password_hash'],
+  prf:[1,0,'profiles','display_name, bio, location, website'],
+  rm:[1,1,'profile_readmes','user_id, markdown_content, updated_at'],
+  rep:[2,0,'repositories','owner_id, name, visibility, readme_enabled'],
+  rfl:[3,0,'repository_files','repository_id, relative_path, storage_key'],
+  img:[3,1,'profile_images','user_id, image_type (banner/featured/gallery)']
+ },
+ edges:[['usr','prf'],['usr','rm'],['usr','rep'],['rep','rfl'],['prf','img']]
+});
+
+$('#hcs').innerHTML=[
+  ['folder-tree','Nested Folder Hosting','Browser directory picker strips the outer folder wrapper and preserves exact relative paths like src/components/Button.svelte.'],
+  ['shield-check','Server-Side Privacy','Private repositories are hidden from public explore/profile endpoints and blocked on tree, file, and download routes.'],
+  ['file-text','Profile README.md','Every developer maintains a separate, sanitized Profile README with Edit and Preview modes directly on /:username.']
+].map(c=>hc(`<span class="chip"><i data-lucide="${c[0]}"></i>${c[1]}</span>`,`<b>${c[1]}</b>${c[2]}`)).join('');
+
+/* ---------- stats ---------- */
+const ST=[[18,'API endpoints'],[9,'SQLite tables'],[6,'gallery image cap'],[3,'visibility & image types'],[2,'separate README scopes'],[0,'external paid services']];
+$('#stats').innerHTML=ST.map(s=>`<div class="stat"><b data-n="${s[0]}">0</b><span>${s[1]}</span></div>`).join('');
+once($('#stats'),()=>document.querySelectorAll('[data-n]').forEach(el=>{const n=+el.dataset.n,t0=performance.now();const f=t=>{const k=RM?1:Math.min(1,(t-t0)/1200);el.textContent=Math.round(n*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(f)};requestAnimationFrame(f)}));
+
+/* ---------- workflows / API groups ---------- */
+const CG={
+  Repositories:[
+    ['POST /api/repositories','Create public or private repository with README toggle'],
+    ['GET /api/me/repositories','List your public and private repositories'],
+    ['GET /api/repositories/by-slug/:owner/:repo','Resolve owner/repo with server-side privacy check'],
+    ['PATCH /api/repositories/:id','Update name, description, visibility, or README setting'],
+    ['DELETE /api/repositories/:id','Delete repository metadata and stored files'],
+    ['GET /api/explore','Search and sort public repositories']
+  ],
+  'Folder Upload':[
+    ['POST /api/repositories/:id/upload','Upload folder files preserving nested relative paths'],
+    ['paths[] normalization','Reject ../ traversal, absolute paths, and invalid segments'],
+    ['overwrite guard','Detect duplicate path conflicts before writing objects'],
+    ['atomic rollback','Clean up staged objects if database commit fails']
+  ],
+  'File Browser':[
+    ['GET /api/repositories/:id/tree?path=','List immediate child folders before files'],
+    ['GET /api/repositories/:id/file?path=','Safe UTF-8 text read or binary detection'],
+    ['GET /api/repositories/:id/download?path=','Download with attachment & nosniff headers']
+  ],
+  'Profile & README':[
+    ['GET /api/users/:username','Fetch public profile, optional public fields, images, repos'],
+    ['PATCH /api/me/profile','Update display name, username, bio, and visibility flags'],
+    ['PUT /api/me/profile/readme','Save Profile README.md separately from repository READMEs'],
+    ['POST /api/markdown/preview','Render sanitized Markdown preview for Edit/Preview toggle'],
+    ['POST /api/me/profile/images','Upload banner, featured, or gallery image (no avatars)'],
+    ['PUT /api/me/profile/social-links','Save validated social & portfolio URLs']
+  ],
+  Authentication:[
+    ['POST /api/auth/signup','Create developer account, profile, and empty Profile README'],
+    ['POST /api/auth/login','Verify scrypt password hash and issue session cookie'],
+    ['POST /api/auth/logout','Revoke session token and clear cookie'],
+    ['GET /api/me','Retrieve active session user and private profile fields']
+  ]
+};
+const tabs=$('#tabs'),cm=$('#cmds');
+Object.keys(CG).forEach((k,i)=>{const b=document.createElement('button');b.textContent=k;b.setAttribute('aria-pressed',i==0);b.onclick=()=>{tabs.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true');show(k)};tabs.appendChild(b)});
+function show(k){cm.innerHTML='';CG[k].forEach(([c,d],i)=>{const s=document.createElement('span');s.textContent=c;s.tabIndex=0;s.style.animationDelay=i*25+'ms';cm.appendChild(s);bindTip(s,()=>d)})}show('Repositories');
+$('#pipe').innerHTML=['Browser request','Auth session check','CSRF & rate limit','Path / schema validator','Ownership check','SQLite + Storage'].map((t,i)=>`${i?'<i data-lucide="chevron-right"></i>':''}<span class="chip">${t}</span>`).join('');
+
+/* ---------- lanes ---------- */
+(()=>{
+ const T={think:'Validate',search:'Read',read:'Check',write:'Store'};
+ const L=[
+   {n:'Picker',s:[['think','Select folder & strip top wrapper',0,1.4,'src/app.ts, public/logo.svg'],['write','Send paths[] + multipart batch',8.4,10,'Navigate to /:owner/:repo']]},
+   {n:'Guard',s:[['read','Authenticate owner & CSRF',1.4,2.6,'Owner verified'],['think','Normalize relative paths',2.6,4.2,'No traversal or conflicts']]},
+   {n:'Storage',s:[['write','Write bytes to scoped repo key',4.2,6.8,'./data/storage/repos/...']]},
+   {n:'SQLite',s:[['read','Check existing duplicate paths',3.5,4.8,''],['write','Commit repository_files rows',6.8,8.2,'Atomic transaction']]},
+   {n:'Browser',s:[['search','Query /tree?path= root',8.2,9.2,'Folders before files']]}
+ ];
+ const tot=10,root=$('#lanes'),rows=[],bars=[];let now=0,play=false,vis=false,seen=false;
+ L.forEach((l,li)=>{const r=document.createElement('div');r.className='lrow';r.innerHTML=`<div class="lname"><i data-lucide="${li?'circle':'circle-dot'}"></i>${l.n}</div><div class="track"></div>`;root.appendChild(r);rows.push([r,l]);const tr=r.lastChild;
+  l.s.forEach(s=>{const b=document.createElement('button');b.className='bar';b.style.cssText=`left:${s[2]/tot*100}%;width:${(s[3]-s[2])/tot*100}%`;b.innerHTML=`<span class="k-${s[0]}"></span>`;b.setAttribute('aria-label',`${T[s[0]]}: ${s[1]}`);tr.appendChild(b);bars.push([b,s]);bindTip(b,()=>`${T[s[0]]} · ${s[1]}${s[4]?(now>=s[3]?' → '+s[4]:' · pending…'):''}`)})});
+ const ph=document.createElement('div'),f=document.createElement('div');ph.className='ph';f.style.cssText='position:absolute;left:clamp(88px,10vw,150px);right:0;top:0;bottom:0;pointer-events:none';f.appendChild(ph);const wrap=document.createElement('div');wrap.style.position='relative';root.parentNode.insertBefore(wrap,root);wrap.appendChild(root);wrap.appendChild(f);
+ const st=$('#status'),log=$('#log'),rg=$('#range'),pb=$('#play');
+ function render(){ph.style.left=now/tot*100+'%';rg.value=now;bars.forEach(([b,s])=>{b.firstChild.style.transform=`scaleX(${Math.min(1,Math.max(0,(now-s[2])/(s[3]-s[2])))})`});
+  let run=0;rows.forEach(([r,l],i)=>{const a=l.s[0][2],e=l.s.at(-1)[3];if(i&&now>=a&&now<e)run++;r.firstChild.className='lname'+(i&&now>=e?' done':'')});
+  st.textContent=now>=tot?`Committed · ${tot.toFixed(1)}s`:run?`${run} ${run>1?'stages':'stage'} active · ${now.toFixed(1)}s`:now?`Preparing batch · ${now.toFixed(1)}s`:'Ready';
+  let h='';bars.forEach(([b,s])=>{if(now>=s[2]){const dn=now>=s[3];h+=`<p><span style="opacity:${dn?.4:1}">●</span><b>${T[s[0]]}</b><span>${s[1]}${dn&&s[4]?' → '+s[4]:''}</span></p>`}});log.innerHTML=h||'Not started yet';
+  pb.innerHTML=`<i data-lucide="${now>=tot?'rotate-ccw':play?'pause':'play'}"></i>`;icons()}
+ let last=0;const tick=t=>{if(!(play&&vis))return;now=Math.min(tot,now+(t-last)/1000);last=t;if(now>=tot)play=false;render();if(play)requestAnimationFrame(tick)};
+ const go=()=>{last=performance.now();requestAnimationFrame(tick)};
+ pb.onclick=()=>{if(now>=tot){now=0;play=true}else play=!play;render();if(play)go()};
+ rg.oninput=()=>{play=false;now=+rg.value;render()};
+ new IntersectionObserver(([en])=>{vis=en.isIntersecting;if(vis&&!seen&&!RM){seen=true;setTimeout(()=>{play=true;go()},500)}if(vis&&play)go()},{threshold:.3}).observe(root);
+ if(RM)now=tot;render();
+})();
+
+/* ---------- publish / upload steps ---------- */
+const PS=[
+  ['folder-plus','Select Folder','Browser webkitdirectory picker captures nested files with relative paths intact.'],
+  ['shield-alert','Validate Paths','Rejects ../ traversal, absolute paths, Windows drives, and conflicting duplicates.'],
+  ['lock','Check Ownership','Only the authenticated repository owner can upload or mutate files.'],
+  ['hard-drive','Store Objects','Writes bytes under scoped repository keys—never trusting client paths on disk.'],
+  ['database','Record Tree','Commits path, MIME type, and byte length to SQLite atomically.'],
+  ['folder-open','Ready to Browse','Immediate-child folders and files render with breadcrumbs and optional README.']
+];
+$('#steps').innerHTML=PS.map(p=>`<div class="pn step"><i data-lucide="${p[0]}"></i><div><h3>${p[1]}</h3><p>${p[2]}</p></div></div>`).join('');
+once($('#steps'),()=>{$('#prog').style.width='100%';document.querySelectorAll('.step').forEach((s,i)=>setTimeout(()=>s.classList.add('on'),RM?0:i*450))},.3);
+
+/* ---------- capability checklist + ladder ---------- */
+const CT=[
+  ['Nested folder upload','POST /api/repositories/:id/upload'],
+  ['Immediate-child tree','GET /api/repositories/:id/tree'],
+  ['Private repo authorization','loadAuthorizedRepo()'],
+  ['Safe text & binary viewer','GET /api/repositories/:id/file'],
+  ['Safe attachment downloads','GET /api/repositories/:id/download'],
+  ['Profile README.md editor','PUT /api/me/profile/readme'],
+  ['Selected images (no avatars)','POST /api/me/profile/images'],
+  ['Validated social links','PUT /api/me/profile/social-links']
+];
+$('#tbl').innerHTML='<tr><th>Platform capability</th><th>Implemented module</th></tr>'+CT.map(r=>`<tr><td>${r[0]}</td><td class="mono">${r[1]}</td></tr>`).join('');
+const LD=['Schema','API','Validation','Auth','Verified'];
+$('#ladder').innerHTML=LD.map((l,i)=>`<div class="rung" tabindex="0" data-h="${(i+1)*20}"><i></i><span>${l}</span></div>`).join('');
+document.querySelectorAll('.rung').forEach((r,i)=>bindTip(r,()=>i==4?'Verified by automated API and browser tests':LD[i]));
+once($('#ladder'),()=>document.querySelectorAll('.rung').forEach((r,i)=>setTimeout(()=>r.firstChild.style.height=r.dataset.h+'%',i*120)));
+
+/* ---------- bars + ring ---------- */
+(()=>{
+ const D=[['API endpoints',18,'Auth, profiles, images, links, repos, trees, files'],['SQLite tables',9,'Users, sessions, profiles, images, links, READMEs, repos, files, activity'],['Security guards',7,'Scrypt, CSRF, rate limit, path normalization, XSS sanitization, magic bytes'],['UI screens',5,'Landing, Sign in, Explore/Dashboard, New Repo, Repo Browser & Profile'],['Upload rules',4,'250 files/batch, 10MB/file, 50MB/batch, atomic rollback'],['External cost',0,'100% free local Node.js + node:sqlite + filesystem storage']];
+ const box=$('#bars');box.innerHTML='<p style="margin-bottom:.6rem"><b>Modules across the KEX platform</b></p>'+D.map(([n,v])=>`<div class="brow" tabindex="0"><span>${n}</span><div class="btrack"><i data-w="${v/18*100}"></i></div><span class="num mono">${v}</span></div>`).join('');
+ box.querySelectorAll('.brow').forEach((r,i)=>bindTip(r,()=>`${D[i][0]}: ${D[i][1]} · ${D[i][2]}`));
+ once(box,()=>box.querySelectorAll('i[data-w]').forEach(i=>i.style.width=i.dataset.w+'%'));
+ const parts=[['Backend API',18,'#161617'],['Data & Security',16,'#8a8a8f'],['UI & Routes',9,'#c4c4c7']],sum=43,svg=$('#ring'),R=44,C=2*Math.PI*R;let off=0;
+ parts.forEach(([n,v,c])=>{const len=v/sum*C,p=document.createElementNS(NS,'circle');for(const[k,x]of Object.entries({cx:60,cy:60,r:R,fill:'none',stroke:c,'stroke-width':14,'stroke-dasharray':`${len-1.5} ${C}`,'stroke-dashoffset':-off,transform:'rotate(-90 60 60)'}))p.setAttribute(k,x);p.style.cursor='pointer';svg.appendChild(p);off+=len;bindTip(p,()=>`${n}: ${v} of ${sum} components`)});
+ const t=document.createElementNS(NS,'text');for(const[k,x]of Object.entries({x:60,y:67,'text-anchor':'middle','font-size':22,'font-weight':800,fill:'#ececee'}))t.setAttribute(k,x);t.textContent=sum;svg.appendChild(t);
+ $('#ringcap').innerHTML='Unified self-hosted stack<br><b style="color:#fff">■</b> Backend 18 &nbsp; <b style="color:#8a8a8f">■</b> Security/Data 16 &nbsp; <b style="color:#c4c4c7">■</b> UI 9';
+})();
+
+/* ---------- cards ---------- */
+const card=a=>`<div class="pn card"><i data-lucide="${a[0]}"></i><h3>${a[1]}</h3><p>${a[2]}</p></div>`;
+$('#sec').innerHTML=[
+  ['lock','Private Repo Enforcement','Private repositories return 404 to unauthorized visitors across slug, tree, file, and download routes.'],
+  ['shield','Path Traversal Defense','Every uploaded and queried path rejects .. segments, absolute paths, Windows drives, and null bytes.'],
+  ['code-2','XSS-Safe Markdown','Profile README.md and repository README.md are rendered and sanitized on the server via strict tag allowlists.'],
+  ['key-round','Session & CSRF Guards','Passwords use scrypt + timing-safe compare; mutations validate SameSite cookies and request origin.'],
+  ['image','Magic-Byte Image Validation','Profile banners, featured images, and gallery uploads verify PNG/JPEG/GIF/WebP headers before saving.'],
+  ['download','Safe Binary Downloads','Files serve with application/octet-stream, Content-Disposition: attachment, and nosniff headers.']
+].map(card).join('');
+
+$('#pages').innerHTML=[
+  ['compass','Explore','Search and sort public repositories across developers.'],
+  ['layout-dashboard','Dashboard','Manage your public and private repositories in one workspace.'],
+  ['folder-up','Create & Upload','Configure visibility, README toggle, and upload nested project folders.'],
+  ['folder-tree','Repository Browser','Navigate immediate-child folders, breadcrumbs, safe viewer, and downloads.'],
+  ['user-round','Developer Profile','Clean text-first profile at /:username with zero avatars or initials circles.'],
+  ['image-plus','Selected Images','Optional banner, featured image, and gallery slots managed by the owner.'],
+  ['link','Social Links','Validated external links for GitHub, LinkedIn, X, YouTube, website, and email.'],
+  ['file-pen-line','Profile README.md','Built-in Edit and Preview Markdown editor directly on your profile page.']
+].map(card).join('');
+
+const TS=[
+  ['Node.js 22','Runtime','Built-in node:sqlite and fast native filesystem I/O with zero paid services'],
+  ['Express','API Server','Clean REST endpoints, multipart streaming, and History API SPA fallback'],
+  ['node:sqlite','Database','Zero-setup relational ACID database with WAL mode and foreign keys'],
+  ['TypeScript','Type Safety','Shared types and strict compiler checks across server and client'],
+  ['Multer','Upload Parser','Enforces file count (250), per-file (10MB), and batch (50MB) limits'],
+  ['Marked + Sanitize','Markdown','Renders Profile and Repository READMEs safely without XSS risks'],
+  ['Scrypt','Auth Hashing','Memory-hard per-user salted password hashing built into Node crypto'],
+  ['Local Storage','Object Store','Scoped repository and image directories with strict path containment'],
+  ['Geist + Mono','Typography','Crisp developer typography matching the KEX monochrome design system'],
+  ['Lucide Icons','Iconography','Lightweight geometric stroke icons across all screens'],
+  ['History API','Routing','Clean URLs like /:username and /:owner/:repo with back/forward support'],
+  ['Vite','Asset Bundler','Fast development middleware and optimized production builds']
+];
+$('#stackg').innerHTML=TS.map(t=>hc(`<div class="pn card" style="min-height:9rem"><p style="margin:0">${t[1]}</p><h3 style="margin-top:auto">${t[0]}</h3></div>`,`<b>${t[0]}</b>${t[2]}`)).join('');
+
+$('#os').innerHTML=[
+  ['folder-git-2','Folder Hosting',['webkitdirectory picker','relative path tree','immediate-child view']],
+  ['shield-check','Access Control',['public discovery','private 404 isolation','server-side auth']],
+  ['file-text','Developer Profiles',['no avatars','selected banner/gallery','editable README.md']]
+].map(o=>`<div class="pn os"><h3><i data-lucide="${o[0]}"></i>${o[1]}</h3><div class="arch">${o[2].map(f=>`<span class="chip mono" tabindex="0" data-tip="${f}">${f}</span>`).join('')}</div></div>`).join('');
+document.querySelectorAll('#os [data-tip]').forEach(e=>bindTip(e,()=>e.dataset.tip));
+$('#rel').innerHTML=['No profile avatars','Separate Repo vs Profile README','Immediate-child folders first','Breadcrumbs & parent navigation','Safe text viewer & downloads','100% free local stack'].map(r=>`<span class="chip"><i data-lucide="check"></i>${r}</span>`).join('');
+
+const PH=[
+  ['Design Preservation', ['Inspect all 3 HTML designs', 'Preserve tokens and colors', 'Keep Geist & Geist Mono', 'Keep layout and spacing', 'Replace old copy with KEX hosting', 'Zero generic template overrides'], 'Every screen matches the supplied monochrome design system cleanly.'],
+  ['Backend & Data', ['SQLite schema with FKs', 'Scrypt auth & sessions', 'CSRF & rate limiting', 'Scoped local object storage', 'Magic-byte image checks', 'Markdown XSS sanitizer'], 'All APIs enforce validation, ownership, and private access control.'],
+  ['Repo Create & Upload', ['Repo name & description', 'Public or Private toggle', 'Repo README toggle', 'Browser folder picker', 'Strip wrapper folder prefix', 'Batch progress & error handling'], 'Developers can upload full nested folders into a new or existing repo.'],
+  ['Repository Browser', ['Immediate-child directory view', 'Folders sorted before files', 'Interactive breadcrumbs', 'Safe text viewer with line numbers', 'Binary download detection', 'Conditional root README.md'], 'Nested folders open level by level without flattening the tree.'],
+  ['Developer Profile', ['Username route /:username', 'No avatars or initials circles', 'Public/private field toggles', 'Banner, featured & gallery images', 'Validated social links', 'Edit & Preview Profile README.md'], 'Profiles showcase work cleanly with owner-only editing controls.'],
+  ['Verification & Tests', ['Auth & duplicate validation tests', 'Private repo authorization tests', 'Path traversal rejection tests', 'Profile README XSS tests', 'TypeScript & lint checks', 'Browser workflow walkthrough'], 'All automated API checks and responsive UI flows pass cleanly.']
+];
+const rd=$('#roadmap');
+rd.innerHTML=`<div class="rprog"><i id="rp"></i></div><div class="rail" role="tablist">${PH.map((p,i)=>`<button class="rb" role="tab" data-i="${i}"><span class="rn mono">0${i+1}</span><span class="rt">${p[0]}</span><span class="rbar"><i style="width:${p[1].length*15}%"></i></span><em class="mono">${p[1].length} deliverables</em></button>`).join('')}</div><div class="pn rdet" id="rdet" aria-live="polite"></div>`;
+const rbs=[...rd.querySelectorAll('.rb')];
+function selPh(i){rbs.forEach((b,j)=>b.setAttribute('aria-selected',j===i));$('#rp').style.width=(i+1)/6*100+'%';const p=PH[i];
+ $('#rdet').innerHTML=`<div class="rd"><div><span class="mono" style="color:var(--mut)">Stage ${i+1} of 6</span><h3>${p[0]}</h3><p class="ex"><b>Exit criteria</b>${p[2]}</p></div><ul>${p[1].map(x=>`<li><i data-lucide="check"></i>${x}</li>`).join('')}</ul></div>`;icons()}
+rbs.forEach((b,i)=>{b.onclick=()=>selPh(i);b.onkeydown=e=>{const d={ArrowRight:1,ArrowLeft:-1}[e.key];if(d){e.preventDefault();const n=(i+d+6)%6;rbs[n].focus();selPh(n)}}});
+selPh(0);
+
+const DBT=[
+  ['users',['id (PK)','username (UK)','email (UK)','password_hash','created_at']],
+  ['profiles',['user_id (PK, FK)','display_name','bio','location + public flag','website + public flag']],
+  ['profile_readmes',['user_id (PK, FK)','markdown_content','updated_at']],
+  ['repositories',['id (PK)','owner_id (FK)','name','visibility','readme_enabled']],
+  ['repository_files',['id (PK)','repository_id (FK)','relative_path','storage_key','size_bytes']]
+];
+$('#dbcards').innerHTML=DBT.map(t=>`<div class="pn card" style="min-height:0;gap:.5rem"><h3 class="mono" style="font-size:1rem">${t[0]}</h3><ul class="mono" style="list-style:none;padding:0;font-size:.78rem;opacity:.75;display:grid;gap:.15rem">${t[1].map(x=>`<li>${x}</li>`).join('')}</ul></div>`).join('');
+
+$('#top').onclick=()=>scrollTo({top:0,behavior:RM?'auto':'smooth'});
+
+$('#feats').innerHTML=[
+  ['folder-tree','Never flatten paths','Nested directories stay hierarchical with immediate-child browsing.'],
+  ['user-x','Zero avatars anywhere','No profile pictures, default silhouettes, or initials circles on profiles or headers.'],
+  ['lock','Server-enforced privacy','Private repositories return 404 to unauthorized callers across every route.'],
+  ['file-text','Two separate READMEs','Profile README.md and Repository README.md live in completely separate tables.'],
+  ['shield-check','Sanitized output','Every Markdown block is stripped of scripts and unsafe attributes server-side.'],
+  ['coins','100% free self-hosted','Runs on built-in Node.js SQLite and local disk with zero paid external services.'],
+  ['download','Safe downloads only','Uploaded source files are never executed on the application origin.'],
+  ['alert-triangle','Atomic error handling','Path conflicts or invalid uploads fail cleanly without leaving partial files.'],
+  ['history','Real browser navigation','URLs like /:username and /:owner/:repo?path=src support full back/forward history.']
+].map(card).join('');
+
+const Q=[
+  ['How does folder upload preserve nested directories?','The browser directory picker provides each file’s webkitRelativePath. KEX strips the single outer selected folder prefix so your repository root starts cleanly with src/, public/, package.json, and README.md while keeping every nested path intact.'],
+  ['Are private repositories truly hidden from visitors?','Yes. All repository lookup, tree listing, file viewer, and download routes check ownership on the server before touching storage. Unauthorized visitors receive 404, and private repos never appear in Explore or public profiles.'],
+  ['Why are there no profile pictures or avatars?','By design, KEX keeps developer profiles clean and text-first with no profile photos or initials circles. Instead, owners can optionally upload a Banner image, Featured image, and up to 6 Gallery images.'],
+  ['How is Profile README.md different from a repository README?','Profile README.md belongs to a user account and renders on /:username, editable directly by the owner with Edit and Preview modes. A repository README.md is an uploaded file inside a repository and only displays when readme_enabled is turned on.'],
+  ['Does KEX cost anything or require external cloud accounts?','No. Everything runs locally for free using Node.js, built-in node:sqlite, and local filesystem object storage.']
+];
+const acc=$('#acc');acc.innerHTML=Q.map((q,i)=>`<div class="ai${i?'':' open'}"><button aria-expanded="${!i}"><span>${q[0]}</span><i data-lucide="chevron-down"></i></button><div class="pnl"><div><p>${q[1]}</p></div></div></div>`).join('');
+acc.querySelectorAll('.ai>button').forEach(b=>b.onclick=()=>{const it=b.parentElement,o=!it.classList.contains('open');acc.querySelectorAll('.ai').forEach(x=>{x.classList.remove('open');x.firstChild.setAttribute('aria-expanded','false')});if(o){it.classList.add('open');b.setAttribute('aria-expanded','true')}});
+icons();
+</script>
+</body>
+</html>

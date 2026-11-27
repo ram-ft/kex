@@ -1,0 +1,2409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>kex — package manager &amp; registry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;800&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<style>
+:root{
+  --px:clamp(16px,4.5vw,96px);
+  --bg:#dcdcde;
+  --ink:#161617;
+  --pn:#ececee;
+  --ln:#bdbdc1;
+  --mut:#5f5f64;
+  --dk-bg:#1d1d1f;
+  --dk-pn:#2a2a2d;
+  --dk-ln:#3d3d41;
+  --dk-ink:#ececee;
+  --dk-mut:#a0a0a6;
+  --rad:8px;
+  color-scheme:light;
+}
+*{box-sizing:border-box;margin:0}
+html{font-size:15px;scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font:400 1rem/1.55 'Geist',system-ui,-apple-system,sans-serif;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  overflow-x:hidden;
+}
+.mono{font-family:'Geist Mono',ui-monospace,SFMono-Regular,monospace}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+svg.lucide{width:1.05em;height:1.05em;stroke-width:1.75;flex:none}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.dk :focus-visible{outline-color:var(--dk-ink)}
+
+/* Inline Header Bar (mixed into header) */
+.top-inline{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+  margin-bottom:clamp(18px,3vh,36px);
+}
+.top-inline.lt .brand-btn{color:var(--ink)}
+.top-inline.lt .pill-profile{
+  background:var(--pn);
+  border-color:var(--ln);
+  color:var(--ink);
+}
+.top-inline.lt .pill-profile:hover{background:#e2e2e5;border-color:#9e9ea4}
+.top-inline.lt .avatar-xs{background:var(--ink);color:var(--pn)}
+.brand-btn{
+  background:none;
+  border:0;
+  padding:0;
+  font-weight:800;
+  font-size:1.45rem;
+  letter-spacing:-0.05em;
+  color:#ececee;
+  display:inline-flex;
+  align-items:center;
+}
+.brand-btn:hover{opacity:.85}
+.nav-actions{display:flex;align-items:center;gap:.6rem}
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:.45rem;
+  padding:.48rem .9rem;
+  border-radius:var(--rad);
+  border:1px solid var(--ln);
+  background:var(--pn);
+  color:var(--ink);
+  font-weight:600;
+  font-size:.88rem;
+  transition:background .15s,border-color .15s,transform .1s;
+  white-space:nowrap;
+}
+.btn:hover{background:#e2e2e5;border-color:#9e9ea4}
+.btn:active{transform:scale(.98)}
+.btn-dark{
+  background:#161617;
+  color:#ececee;
+  border-color:#161617;
+}
+.btn-dark:hover{background:#2a2a2d;border-color:#2a2a2d}
+.btn-light-dk{
+  background:#ececee;
+  color:#161617;
+  border-color:#ececee;
+}
+.btn-light-dk:hover{background:#ffffff;border-color:#ffffff}
+.btn-ghost-dk{
+  background:#2a2a2d;
+  color:#ececee;
+  border-color:#3d3d41;
+}
+.btn-ghost-dk:hover{background:#343438;border-color:#525258}
+.btn-sm{padding:.34rem .68rem;font-size:.82rem}
+.pill-profile{
+  display:inline-flex;
+  align-items:center;
+  gap:.45rem;
+  padding:.38rem .8rem .38rem .45rem;
+  border-radius:999px;
+  border:1px solid #3d3d41;
+  background:#2a2a2d;
+  color:#ececee;
+  font-size:.86rem;
+  font-weight:600;
+  transition:background .15s,border-color .15s;
+}
+.pill-profile:hover{background:#343438;border-color:#5f5f64}
+.avatar-xs{
+  width:22px;
+  height:22px;
+  border-radius:999px;
+  background:#ececee;
+  color:#161617;
+  font-size:.7rem;
+  font-weight:800;
+  display:grid;
+  place-items:center;
+  letter-spacing:-0.03em;
+}
+
+/* Layout Containers */
+main{flex:1}
+.wrap{padding:clamp(24px,3.5vw,52px) var(--px)}
+.sec-dk{
+  background:var(--dk-bg);
+  color:var(--dk-ink);
+  padding:clamp(32px,4.5vw,68px) var(--px);
+  border-bottom:1px solid var(--dk-ln);
+}
+.sec-lt{
+  background:var(--bg);
+  color:var(--ink);
+  padding:clamp(28px,3.5vw,52px) var(--px);
+}
+.pn{
+  background:var(--pn);
+  border:1px solid var(--ln);
+  border-radius:var(--rad);
+}
+.pn-dk{
+  background:var(--dk-pn);
+  border:1px solid var(--dk-ln);
+  border-radius:var(--rad);
+}
+
+/* Typography */
+h1,h2,h3,h4{font-weight:800;letter-spacing:-0.045em;line-height:1.05}
+.hero-title{
+  font-size:clamp(2.1rem,4.6vw,4.1rem);
+  letter-spacing:-0.05em;
+  line-height:1.01;
+  max-width:17ch;
+}
+.sec-title{
+  font-size:clamp(1.35rem,2vw,1.85rem);
+  letter-spacing:-0.035em;
+}
+.mut{color:var(--mut)}
+.dk-mut{color:var(--dk-mut)}
+
+/* Hero Section */
+.hero-grid{
+  display:grid;
+  gap:2rem;
+  align-items:end;
+}
+@media(min-width:960px){
+  .hero-grid{grid-template-columns:1.25fr .9fr;gap:3rem}
+}
+.hero-search{
+  margin-top:1.75rem;
+  display:flex;
+  align-items:center;
+  gap:.6rem;
+  background:#2a2a2d;
+  border:1px solid #3d3d41;
+  border-radius:var(--rad);
+  padding:.35rem .4rem .35rem .9rem;
+  transition:border-color .15s,box-shadow .15s;
+}
+.hero-search:focus-within{border-color:#ececee;box-shadow:0 0 0 3px #ececee1f}
+.hero-search input{
+  flex:1;
+  min-width:0;
+  background:none;
+  border:0;
+  outline:0;
+  color:#ececee;
+  font-size:.96rem;
+  padding:.45rem 0;
+}
+.hero-search input::placeholder{color:#8c8c93}
+.kbd{
+  font-family:'Geist Mono',monospace;
+  font-size:.75rem;
+  padding:.15rem .45rem;
+  border:1px solid #3d3d41;
+  border-radius:5px;
+  color:#a0a0a6;
+  background:#1d1d1f;
+}
+.cmd-box{
+  display:flex;
+  align-items:center;
+  gap:.7rem;
+  background:#141416;
+  border:1px solid #333338;
+  color:#ececee;
+  border-radius:var(--rad);
+  padding:.75rem .95rem;
+  margin-top:1.1rem;
+}
+.cmd-box code{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.92rem}
+.icon-btn{
+  background:none;
+  border:0;
+  color:inherit;
+  opacity:.7;
+  padding:.3rem;
+  border-radius:6px;
+  display:grid;
+  place-items:center;
+}
+.icon-btn:hover{opacity:1;background:#ffffff14}
+
+/* Counters */
+.counters{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:1px;
+  background:#3d3d41;
+  border:1px solid #3d3d41;
+  border-radius:var(--rad);
+  overflow:hidden;
+  margin-top:2.2rem;
+}
+@media(min-width:760px){.counters{grid-template-columns:repeat(4,1fr)}}
+.counter-cell{
+  background:#1d1d1f;
+  padding:1.1rem 1.25rem;
+}
+.counter-cell b{
+  display:block;
+  font-size:clamp(1.5rem,2.4vw,2.2rem);
+  font-weight:800;
+  letter-spacing:-0.05em;
+  line-height:1.05;
+}
+.counter-cell span{font-size:.82rem;color:#a0a0a6}
+
+/* Chips & Badges */
+.chip{
+  display:inline-flex;
+  align-items:center;
+  gap:.35rem;
+  padding:.24rem .65rem;
+  border:1px solid var(--ln);
+  border-radius:999px;
+  background:var(--pn);
+  font-size:.78rem;
+  font-weight:600;
+  color:var(--ink);
+  white-space:nowrap;
+}
+.chip-dk{
+  background:#2a2a2d;
+  border-color:#3d3d41;
+  color:#ececee;
+}
+.chip-solid{
+  background:#161617;
+  border-color:#161617;
+  color:#ececee;
+}
+.chip-btn{
+  cursor:pointer;
+  transition:background .15s,color .15s,border-color .15s;
+}
+.chip-btn:hover{border-color:var(--ink)}
+.chip-btn[aria-pressed="true"]{
+  background:#161617;
+  color:#ececee;
+  border-color:#161617;
+}
+
+/* Discover Bento Grid */
+.bento-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:.85rem;
+  margin-top:1.25rem;
+}
+@media(min-width:640px){
+  .bento-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(min-width:1024px){
+  .bento-grid{
+    grid-template-columns:repeat(6,1fr);
+    grid-auto-rows:minmax(132px,auto);
+  }
+  .bento-c2{grid-column:span 2}
+  .bento-r2{grid-row:span 2}
+}
+.bento-card{
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  gap:.85rem;
+  padding:1.15rem 1.2rem;
+  background:var(--pn);
+  border:1px solid var(--ln);
+  border-radius:var(--rad);
+  text-align:left;
+  position:relative;
+  overflow:hidden;
+  transition:background .16s,color .16s,border-color .16s,transform .14s;
+}
+.bento-card:hover{
+  background:#161617;
+  color:#ececee;
+  border-color:#161617;
+  transform:translateY(-2px);
+}
+.bento-card:hover .bento-desc,
+.bento-card:hover .bento-cnt{color:#a0a0a6}
+.bento-card:hover .bento-ico{background:#2a2a2d;border-color:#3d3d41;color:#ececee}
+.bento-card.bento-featured{
+  background:#1d1d1f;
+  color:#ececee;
+  border-color:#3d3d41;
+}
+.bento-card.bento-featured .bento-desc,
+.bento-card.bento-featured .bento-cnt{color:#a0a0a6}
+.bento-card.bento-featured .bento-ico{background:#2a2a2d;border-color:#3d3d41;color:#ececee}
+.bento-card.bento-featured:hover{background:#161617;border-color:#5f5f64}
+.bento-top{display:flex;align-items:center;justify-content:space-between;gap:.6rem;width:100%}
+.bento-ico{
+  width:34px;
+  height:34px;
+  border-radius:7px;
+  border:1px solid var(--ln);
+  background:var(--bg);
+  display:grid;
+  place-items:center;
+  transition:background .16s,border-color .16s,color .16s;
+}
+.bento-cnt{font-size:.76rem;color:var(--mut)}
+.bento-name{font-weight:800;font-size:1.05rem;letter-spacing:-0.03em}
+.bento-desc{font-size:.83rem;color:var(--mut);line-height:1.4;margin-top:.22rem}
+.bento-tags{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.65rem}
+.bento-tag{
+  font-family:'Geist Mono',monospace;
+  font-size:.72rem;
+  padding:.16rem .5rem;
+  border-radius:999px;
+  border:1px solid #3d3d41;
+  background:#2a2a2d;
+  color:#ececee;
+}
+
+/* Grids & Cards */
+.pkg-mini-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(270px,1fr));
+  gap:.9rem;
+  margin-top:1.1rem;
+}
+.pkg-mini{
+  padding:1.1rem;
+  display:flex;
+  flex-direction:column;
+  gap:.55rem;
+  text-align:left;
+  transition:border-color .15s,transform .12s;
+}
+.pkg-mini:hover{border-color:var(--ink);transform:translateY(-1px)}
+.scope-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:.9rem;
+  margin-top:1.1rem;
+}
+.scope-card{
+  padding:1.15rem;
+  display:flex;
+  flex-direction:column;
+  gap:.5rem;
+  text-align:left;
+  transition:border-color .15s,background .15s,color .15s;
+}
+.scope-card:hover{background:#161617;color:#ececee;border-color:#161617}
+.scope-card:hover .mut{color:#a0a0a6}
+
+/* Search View */
+.search-bar-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:.75rem;
+  align-items:center;
+}
+.input-box{
+  display:flex;
+  align-items:center;
+  gap:.55rem;
+  background:var(--pn);
+  border:1px solid var(--ln);
+  border-radius:var(--rad);
+  padding:0 .85rem;
+  flex:1;
+  min-width:240px;
+}
+.input-box:focus-within{border-color:var(--ink);box-shadow:0 0 0 3px #16161714}
+.input-box input{
+  flex:1;
+  min-width:0;
+  border:0;
+  background:none;
+  outline:0;
+  padding:.68rem 0;
+}
+.select-box{
+  background:var(--pn);
+  border:1px solid var(--ln);
+  border-radius:var(--rad);
+  padding:.64rem .85rem;
+  font-weight:600;
+  font-size:.88rem;
+}
+.cat-scroll{
+  display:flex;
+  gap:.45rem;
+  overflow-x:auto;
+  padding:.9rem 0 .4rem;
+  scrollbar-width:thin;
+}
+.pkg-list{display:grid;gap:.8rem;margin-top:1rem}
+.pkg-card{
+  padding:1.15rem 1.25rem;
+  display:grid;
+  gap:.9rem;
+  transition:border-color .15s;
+}
+.pkg-card:hover{border-color:var(--ink)}
+@media(min-width:780px){
+  .pkg-card{grid-template-columns:1fr auto;align-items:center}
+}
+.pkg-name-link{
+  font-weight:800;
+  font-size:1.12rem;
+  letter-spacing:-0.025em;
+  display:inline-flex;
+  align-items:center;
+  gap:.5rem;
+  background:none;
+  border:0;
+  padding:0;
+  text-align:left;
+}
+.pkg-name-link:hover{text-decoration:underline;text-underline-offset:3px}
+.pkg-meta{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:.7rem;
+  font-size:.82rem;
+  color:var(--mut);
+  margin-top:.55rem;
+}
+.pkg-right{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:.55rem;
+}
+@media(max-width:779px){
+  .pkg-right{flex-direction:row;align-items:center;justify-content:space-between;flex-wrap:wrap}
+}
+
+/* Package Explorer */
+.pkg-head-card{
+  background:#1d1d1f;
+  color:#ececee;
+  padding:clamp(24px,3.2vw,44px) var(--px);
+  border-bottom:1px solid #3d3d41;
+}
+.pkg-head-grid{
+  display:grid;
+  gap:1.5rem;
+  align-items:start;
+}
+@media(min-width:920px){
+  .pkg-head-grid{grid-template-columns:1.3fr .9fr}
+}
+.subtabs{
+  display:flex;
+  gap:.35rem;
+  flex-wrap:wrap;
+  border-bottom:1px solid var(--ln);
+  padding-bottom:.75rem;
+  margin-bottom:1.4rem;
+}
+.subtab{
+  display:inline-flex;
+  align-items:center;
+  gap:.4rem;
+  padding:.45rem .9rem;
+  border-radius:999px;
+  border:1px solid transparent;
+  background:none;
+  font-weight:600;
+  font-size:.88rem;
+  color:var(--mut);
+}
+.subtab:hover{color:var(--ink);background:#0000000a}
+.subtab[aria-selected="true"]{
+  background:#161617;
+  color:#ececee;
+}
+
+/* Markdown-style Readme */
+.md-body{padding:1.5rem;line-height:1.65}
+.md-body h2{font-size:1.35rem;margin:1.3rem 0 .6rem;padding-bottom:.35rem;border-bottom:1px solid var(--ln)}
+.md-body h2:first-child{margin-top:0}
+.md-body h3{font-size:1.08rem;margin:1.1rem 0 .45rem}
+.md-body p{margin:.55rem 0}
+.md-body ul{margin:.5rem 0 .8rem 1.25rem}
+.md-body li{margin:.25rem 0}
+.code-block{
+  background:#161617;
+  color:#ececee;
+  border-radius:var(--rad);
+  padding:.9rem 1rem;
+  font-family:'Geist Mono',monospace;
+  font-size:.86rem;
+  overflow-x:auto;
+  position:relative;
+  margin:.75rem 0;
+}
+
+/* Code Explorer */
+.code-shell{
+  display:grid;
+  border:1px solid var(--ln);
+  border-radius:var(--rad);
+  overflow:hidden;
+  background:var(--pn);
+}
+@media(min-width:820px){
+  .code-shell{grid-template-columns:240px 1fr}
+}
+.file-tree{
+  border-bottom:1px solid var(--ln);
+  padding:.65rem;
+  background:#e4e4e7;
+}
+@media(min-width:820px){
+  .file-tree{border-bottom:0;border-right:1px solid var(--ln)}
+}
+.file-item{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:.5rem;
+  padding:.42rem .6rem;
+  border:0;
+  border-radius:6px;
+  background:none;
+  text-align:left;
+  font-size:.84rem;
+  color:var(--ink);
+}
+.file-item:hover{background:#d4d4d8}
+.file-item[aria-selected="true"]{background:#161617;color:#ececee}
+.code-viewer-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:.6rem 1rem;
+  border-bottom:1px solid var(--ln);
+  background:#e9e9ec;
+  font-size:.84rem;
+}
+.code-lines{
+  padding:.85rem 0;
+  overflow-x:auto;
+  background:#161617;
+  color:#ececee;
+  font-family:'Geist Mono',monospace;
+  font-size:.83rem;
+  line-height:1.55;
+}
+.code-line{display:flex;padding:0 1rem}
+.code-line:hover{background:#232326}
+.ln-no{
+  width:2.6rem;
+  flex:none;
+  color:#6c6c73;
+  user-select:none;
+  text-align:right;
+  padding-right:1rem;
+}
+.ln-txt{white-space:pre}
+
+/* Tables */
+.tbl-wrap{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:.9rem}
+.tbl th{text-align:left;color:var(--mut);font-weight:600;padding:.75rem 1rem;border-bottom:1px solid var(--ln);font-size:.82rem}
+.tbl td{padding:.85rem 1rem;border-bottom:1px solid var(--ln);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:0}
+
+/* Heatmap (26 weeks) */
+.hm-wrap{
+  overflow-x:auto;
+  padding:1.1rem;
+}
+.hm-grid{
+  display:grid;
+  grid-template-columns:repeat(26,minmax(12px,1fr));
+  grid-template-rows:repeat(7,14px);
+  gap:4px;
+  min-width:480px;
+}
+.hm-cell{
+  border-radius:3px;
+  background:#d2d2d6;
+  border:0;
+  padding:0;
+  transition:transform .12s;
+}
+.hm-cell:hover{transform:scale(1.22)}
+.hm-cell[data-l="1"]{background:#b0b0b6}
+.hm-cell[data-l="2"]{background:#7f7f86}
+.hm-cell[data-l="3"]{background:#4a4a4f}
+.hm-cell[data-l="4"]{background:#161617}
+
+/* Forms & Modals */
+.form-grid{display:grid;gap:.9rem}
+@media(min-width:640px){.form-grid.two-col{grid-template-columns:1fr 1fr}}
+.field label{display:block;font-size:.83rem;font-weight:600;margin-bottom:.3rem}
+.field input,.field select,.field textarea{
+  width:100%;
+  background:var(--pn);
+  border:1px solid var(--ln);
+  border-radius:var(--rad);
+  padding:.6rem .8rem;
+  outline:0;
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+  border-color:var(--ink);
+  box-shadow:0 0 0 3px #16161714;
+}
+.modal-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:80;
+  background:#16161799;
+  display:none;
+  place-items:center;
+  padding:1rem;
+}
+.modal-backdrop.open{display:grid}
+.modal-card{
+  width:min(100%,560px);
+  max-height:90vh;
+  overflow-y:auto;
+  background:var(--bg);
+  border:1px solid var(--ln);
+  border-radius:10px;
+  padding:1.4rem;
+}
+
+/* Toast */
+#toast{
+  position:fixed;
+  left:50%;
+  bottom:1.4rem;
+  transform:translate(-50%,16px);
+  opacity:0;
+  pointer-events:none;
+  z-index:100;
+  background:#161617;
+  color:#ececee;
+  border:1px solid #3d3d41;
+  border-radius:10px;
+  padding:.7rem 1rem;
+  font-size:.86rem;
+  display:flex;
+  align-items:center;
+  gap:.55rem;
+  max-width:92vw;
+  transition:opacity .2s,transform .25s cubic-bezier(.34,1.56,.64,1);
+}
+#toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+
+
+</style>
+</head>
+<body>
+
+
+
+<main id="app" aria-live="polite"></main>
+
+
+
+<div class="modal-backdrop" id="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <h3 id="modal-title" style="font-size:1.25rem">Modal</h3>
+      <button type="button" class="icon-btn" id="modal-close" aria-label="Close"><i data-lucide="x"></i></button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div id="toast" role="status"><i data-lucide="check-circle-2"></i><span id="toast-msg"></span></div>
+
+<script>
+(() => {
+  'use strict';
+
+  const CATEGORIES = [
+    { name: 'Front-end', icon: 'layout', span: 'bento-c2 bento-r2 bento-featured', desc: 'Headless UI primitives, component kits, and browser-ready modules.', tags: ['@ui/primitives', 'zero-runtime'] },
+    { name: 'Back-end', icon: 'server', span: 'bento-c2', desc: 'HTTP routers, SQL migrations, workers, and streaming tarballs.' },
+    { name: 'CLI', icon: 'terminal', span: 'bento-c2', desc: 'Command routers, workspace runners, and terminal tooling.' },
+    { name: 'Frameworks', icon: 'layers', span: 'bento-c2', desc: 'SSR adapters and full-stack build integrations.' },
+    { name: 'Testing', icon: 'flask-conical', span: '', desc: 'Isolated runners & parity suites.' },
+    { name: 'CSS', icon: 'palette', span: '', desc: 'Typed design tokens & utilities.' },
+    { name: 'Documentation', icon: 'book-open', span: 'bento-c2', desc: 'JSDoc & MDX static registry documentation generators.' },
+    { name: 'Coverage', icon: 'pie-chart', span: '', desc: 'LCOV & branch thresholds.' },
+    { name: 'IoT', icon: 'cpu', span: '', desc: 'UART, I2C & MQTT bridges.' },
+    { name: 'Mobile', icon: 'smartphone', span: '', desc: 'Native bridges & Metro plugins.' },
+    { name: 'Robotics', icon: 'bot', span: '', desc: 'ROS 2 & DDS telemetry clients.' }
+  ];
+
+  const INITIAL_PACKAGES = [
+    {
+      name: '@kex/core',
+      version: '1.8.4',
+      distTags: { latest: '1.8.4', next: '1.9.0-rc.2' },
+      category: 'CLI',
+      scope: '@kex',
+      description: 'Core semver resolver, lockfile graph engine, and content-addressable store bindings for KEX.',
+      maintainer: '@arjun-kex',
+      updatedAt: '2026-11-23',
+      weeklyDownloads: 184200,
+      stars: 942,
+      license: 'MIT',
+      verified: true,
+      repo: 'https://git.kex.dev/kex/core',
+      sparkline: [24, 28, 31, 29, 36, 42, 48],
+      dependencies: { 'fast-semver': '^2.4.1', 'tar-stream-zstd': '^1.3.0' },
+      readme: `## @kex/core\n\nDeterministic dependency resolution, lockfile parsing, and content-addressable caching for KEX workspaces.\n\n### Quick Usage\n\n\`\`\`ts\nimport { resolveGraph, verifyIntegrity } from '@kex/core';\n\nconst graph = await resolveGraph('./package.json', {\n  registry: 'https://registry.kex.dev',\n  frozenLockfile: true\n});\nconsole.log(graph.nodes.length);\n\`\`\`\n\n### Highlights\n- Zero-copy lockfile diffing compatible with \`package-lock.json\` v3\n- SHA-512 tarball integrity and Sigstore-compatible provenance checks\n- Parallel workspace hoisting across monorepos`,
+      files: {
+        'package.json': `{\n  "name": "@kex/core",\n  "version": "1.8.4",\n  "license": "MIT",\n  "type": "module",\n  "exports": {\n    ".": "./dist/index.js"\n  },\n  "dependencies": {\n    "fast-semver": "^2.4.1",\n    "tar-stream-zstd": "^1.3.0"\n  }\n}`,
+        'README.md': `# @kex/core\n\nCore semver resolver and lockfile graph engine for KEX.\n\nRun \`kex add @kex/core\` to install.`,
+        'src/index.ts': `import { satisfies } from 'fast-semver';\n\nexport interface ResolveOptions {\n  registry: string;\n  frozenLockfile?: boolean;\n}\n\nexport async function resolveGraph(manifestPath: string, opts: ResolveOptions) {\n  const started = performance.now();\n  return {\n    manifestPath,\n    registry: opts.registry,\n    nodes: ['@kex/core', 'fast-semver', 'tar-stream-zstd'],\n    elapsedMs: Math.round(performance.now() - started),\n    satisfiesCheck: satisfies('1.8.4', '^1.8.0')\n  };\n}`,
+        'src/resolver.rs': `pub struct Resolver {\n    pub registry_url: String,\n    pub strict_integrity: bool,\n}\n\nimpl Resolver {\n    pub fn resolve(&self, name: &str, range: &str) -> Result<String, &'static str> {\n        if name.is_empty() || range.is_empty() {\n            return Err("invalid package spec");\n        }\n        Ok(format!("{}@{}", name, range))\n    }\n}`
+      },
+      versions: [
+        { version: '1.8.4', tag: 'latest', date: '2026-11-23', notes: 'Faster workspace lockfile reconciliation and SHA-512 streaming check.' },
+        { version: '1.9.0-rc.2', tag: 'next', date: '2026-11-20', notes: 'Experimental parallel tarball pre-fetching.' },
+        { version: '1.8.3', tag: '', date: '2026-11-08', notes: 'Fix peer dependency resolution on optional workspaces.' }
+      ],
+      security: {
+        shasum: 'sha512-9xK2mP7qR4vW8zB1nL5cF3tY6hJ0dG4sA8eU2wQ9iO7pM5nV3cX1zK8rT4yL6bN2mQ==',
+        provenance: 'Signed via KEX OIDC Attestation (builder: github-actions-kex-release)',
+        auditStatus: '0 vulnerabilities · Verified immutable release'
+      }
+    },
+    {
+      name: '@kex/cli',
+      version: '2.3.1',
+      distTags: { latest: '2.3.1', next: '2.4.0-alpha.1' },
+      category: 'CLI',
+      scope: '@kex',
+      description: 'Unified command router and terminal UI for kex install, add, publish, and workspace scripts.',
+      maintainer: '@arjun-kex',
+      updatedAt: '2026-11-24',
+      weeklyDownloads: 215400,
+      stars: 1180,
+      license: 'MIT',
+      verified: true,
+      repo: 'https://git.kex.dev/kex/cli',
+      sparkline: [32, 35, 38, 41, 45, 49, 56],
+      dependencies: { '@kex/core': '^1.8.4', 'fast-semver': '^2.4.1' },
+      readme: `## @kex/cli\n\nCommand-line interface for the KEX package manager and registry.\n\n### Quick Usage\n\n\`\`\`bash\nkex install\nkex add @std/http-router\nkex publish --access public\n\`\`\``,
+      files: {
+        'package.json': `{\n  "name": "@kex/cli",\n  "version": "2.3.1",\n  "bin": { "kex": "./bin/kex.js" },\n  "dependencies": { "@kex/core": "^1.8.4", "fast-semver": "^2.4.1" }\n}`,
+        'README.md': `# @kex/cli\n\nUnified command router for KEX.`,
+        'src/index.ts': `export const COMMANDS = ['install', 'add', 'remove', 'publish', 'search', 'audit'] as const;\n\nexport function routeCommand(cmd: string) {\n  return COMMANDS.includes(cmd as any) ? cmd : 'help';\n}`
+      },
+      versions: [
+        { version: '2.3.1', tag: 'latest', date: '2026-11-24', notes: 'Add --json output flag to kex audit and kex outdated.' },
+        { version: '2.3.0', tag: '', date: '2026-11-12', notes: 'New interactive progress lanes for workspace installs.' }
+      ],
+      security: {
+        shasum: 'sha512-4bR7vN1mK9pL2wX5cQ8zT3yJ6hF0dG4sA8eU2wQ9iO7pM5nV3cX1zK8rT4yL6bN2mQ==',
+        provenance: 'Signed via KEX OIDC Attestation',
+        auditStatus: '0 vulnerabilities · Verified immutable release'
+      }
+    },
+    {
+      name: 'fast-semver',
+      version: '2.4.1',
+      distTags: { latest: '2.4.1' },
+      category: 'Back-end',
+      scope: '',
+      description: 'Zero-allocation SemVer parser, range comparator, and version sorter written in TypeScript.',
+      maintainer: '@arjun-kex',
+      updatedAt: '2026-11-19',
+      weeklyDownloads: 342900,
+      stars: 615,
+      license: 'Apache-2.0',
+      verified: true,
+      repo: 'https://git.kex.dev/arjun/fast-semver',
+      sparkline: [41, 44, 43, 47, 50, 52, 58],
+      dependencies: {},
+      readme: `## fast-semver\n\nFast, spec-compliant SemVer 2.0.0 parsing and npm range matching.\n\n\`\`\`ts\nimport { satisfies, maxSatisfying } from 'fast-semver';\n\nsatisfies('2.4.1', '^2.0.0'); // true\nmaxSatisfying(['1.9.0', '2.4.1', '3.0.0'], '^2.0.0'); // '2.4.1'\n\`\`\``,
+      files: {
+        'package.json': `{\n  "name": "fast-semver",\n  "version": "2.4.1",\n  "license": "Apache-2.0",\n  "main": "./dist/index.js"\n}`,
+        'README.md': `# fast-semver\n\nZero-allocation SemVer parser and range comparator.`,
+        'src/index.ts': `export function satisfies(version: string, range: string): boolean {\n  const [maj] = version.split('.').map(Number);\n  const clean = range.replace(/^[\\^~]/, '');\n  const [rmaj] = clean.split('.').map(Number);\n  return maj === rmaj;\n}`
+      },
+      versions: [
+        { version: '2.4.1', tag: 'latest', date: '2026-11-19', notes: 'Handle pre-release build metadata in range comparators.' },
+        { version: '2.4.0', tag: '', date: '2026-11-01', notes: 'Added maxSatisfying fast path.' }
+      ],
+      security: {
+        shasum: 'sha512-7cW8xL3nP6qR9vB2mK5tY1hJ4dG8sA0eU3wQ7iO2pM9nV6cX4zK1rT8yL3bN5mQ==',
+        provenance: 'Signed via KEX OIDC Attestation',
+        auditStatus: '0 vulnerabilities · Verified immutable release'
+      }
+    },
+    {
+      name: '@std/http-router',
+      version: '1.2.0',
+      distTags: { latest: '1.2.0' },
+      category: 'Back-end',
+      scope: '@std',
+      description: 'Radix-tree HTTP router with typed params, Web Fetch Request/Response support, and zero deps.',
+      maintainer: '@arjun-kex',
+      updatedAt: '2026-11-22',
+      weeklyDownloads: 96800,
+      stars: 488,
+      license: 'MIT',
+      verified: true,
+      repo: 'https://git.kex.dev/std/http-router',
+      sparkline: [14, 16, 15, 19, 22, 25, 29],
+      dependencies: {},
+      readme: `## @std/http-router\n\nLightweight radix-tree router built on standard Web Fetch primitives.\n\n\`\`\`ts\nimport { Router } from '@std/http-router';\n\nconst app = new Router();\napp.get('/packages/:name', (req, params) => Response.json({ name: params.name }));\n\`\`\``,
+      files: {
+        'package.json': `{\n  "name": "@std/http-router",\n  "version": "1.2.0",\n  "license": "MIT",\n  "type": "module"\n}`,
+        'README.md': `# @std/http-router\n\nRadix-tree HTTP router for edge and Node runtimes.`,
+        'src/index.ts': `export class Router {\n  private routes: Array<{ method: string; path: string; handler: Function }> = [];\n  get(path: string, handler: Function) {\n    this.routes.push({ method: 'GET', path, handler });\n  }\n}`
+      },
+      versions: [
+        { version: '1.2.0', tag: 'latest', date: '2026-11-22', notes: 'Support wildcard fallback routes and typed middleware.' }
+      ],
+      security: {
+        shasum: 'sha512-2mQ8wN4xR7vB1kP5tY9hJ3dG6sA2eU8wQ4iO9pM1nV7cX5zK3rT6yL8bN1mQ==',
+        provenance: 'Signed via KEX OIDC Attestation',
+        auditStatus: '0 vulnerabilities · Verified immutable release'
+      }
+    },
+    {
+      name: 'tar-stream-zstd',
+      version: '1.3.0',
+      distTags: { latest: '1.3.0' },
+      category: 'Back-end',
+      scope: '',
+      description: 'Streaming tar archive packer and unpacker with Zstandard compression and SHA-512 digests.',
+      maintainer: '@arjun-kex',
+      updatedAt: '2026-11-17',
+      weeklyDownloads: 128500,
+      stars: 372,
+      license: 'MIT',
+      verified: true,
+      repo: 'https://git.kex.dev/arjun/tar-stream-zstd',
+      sparkline: [19, 21, 20, 23, 24, 27, 30],
+      dependencies: {},
+      readme: `## tar-stream-zstd\n\nHigh-throughput streaming tarball creation and extraction.\n\n\`\`\`ts\nimport { packDirectory } from 'tar-stream-zstd';\nconst { digest, bytes } = await packDirectory('./dist');\n\`\`\``,
+      files: {
+        'package.json': `{\n  "name": "tar-stream-zstd",\n  "version": "1.3.0",\n  "license": "MIT"\n}`,
+        'README.md': `# tar-stream-zstd\n\nStreaming tar + zstd archive utility.`,
+        'src/index.ts': `export async function packDirectory(dir: string) {\n  return { dir, digest: 'sha512-verified', bytes: 4096 };\n}`
+      },
+      versions: [
+        { version: '1.3.0', tag: 'latest', date: '2026-11-17', notes: 'Streaming CRC and SHA-512 verification in single pass.' }
+      ],
+      security: {
+        shasum: 'sha512-5pL9xM2qR8vW3zB6nK1cF4tY7hJ2dG9sA5eU1wQ6iO3pM8nV4cX2zK9rT5yL1bN==',
+        provenance: 'Signed via KEX OIDC Attestation',
+        auditStatus: '0 vulnerabilities · Verified immutable release'
+      }
+    },
+    {
+      name: '@ui/primitives',
+      version: '0.14.2',
+      distTags: { latest: '0.14.2', next: '0.15.0-beta.1' },
+      category: 'Front-end',
+      scope: '@ui',
+      description: 'Accessible headless dialog, tabs, combobox, and toast primitives with zero runtime CSS.',
+      maintainer: '@maya-ui',
+      updatedAt: '2026-11-24',
+      weeklyDownloads: 164300,
+      stars: 1420,
+      license: 'MIT',
+      verified: true,
+      repo: 'https://git.kex.dev/ui/primitives',
+      sparkline: [25, 29, 34, 33, 39, 44, 51],
+      dependencies: { 'vite-css-tokens': '^1.1.0' },
+      readme: `## @ui/primitives\n\nKeyboard-navigable, WAI-ARIA compliant UI primitives.\n\n\`\`\`ts\nimport { createTabs, createToast } from '@ui/primitives';\n\`\`\``,
+      files: {
+        'package.json': `{\n  "name": "@ui/primitives",\n  "version": "0.14.2",\n  "dependencies": { "vite-css-tokens": "^1.1.0" }\n}`,
+        'README.md': `# @ui/primitives\n\nAccessible headless UI primitives.`,
+        'src/index.ts': `export function createToast(message: string) {\n  return { id: Date.now(), message };\n}`
+      },
+      versions: [
+        { version: '0.14.2', tag: 'latest', date: '2026-11-24', notes: 'Improved focus trap restoration on nested modals.' }
+      ],
+      security: {
+        shasum: 'sha512-8aB3cD9eF2gH5iJ8kL1mN4oP7qR0sT3uV6wX9yZ2aB5cD8eF1gH4iJ7kL0mN==',
+        provenance: 'Signed via KEX OIDC Attestation',
+        auditStatus: '0 vulnerabilities · Verified immutable release'
+      }
+    },
+    {
+      name: 'pg-migrate-lite',
+      version: '3.0.4',
+      distTags: { latest: '3.0.4' },
+      category: 'Back-end',
+      scope: '',
+      description: 'Transactional SQL migration runner for PostgreSQL with checksum lock verification.',
+      maintainer: '@devon-db',
+      updatedAt: '2026-11-15',
+      weeklyDownloads: 74200,
+      stars: 310,
+      license: 'MIT',
+      verified: true,
+      repo: 'https://git.kex.dev/devon/pg-migrate-lite',
+      sparkline: [11, 12, 14, 13, 15, 16, 18],
+      dependencies: {},
+      readme: `## pg-migrate-lite\n\nDeterministic SQL migrations for PostgreSQL.\n\n\`\`\`bash\nkex exec pg-migrate-lite up\n\`\`\``,
+      files: {
+        'package.json': `{\n  "name": "pg-migrate-lite",\n  "version": "3.0.4",\n  "license": "MIT"\n}`,
+        'README.md': `# pg-migrate-lite\n\nTransactional SQL migration runner.`,
+        'src/index.ts': `export async function migrateUp(poolUrl: string) {\n  return { applied: 4, poolUrl };\n}`
+      },
+      versions: [
+        { version: '3.0.4', tag: 'latest', date: '2026-11-15', notes: 'Advisory lock timeout configuration.' }
+      ],
+      security: {
+        shasum: 'sha512-3xY6zA9bC2dE5fG8hI1jK4lM7nO0pQ3rS6tU9vW2xY5zA8bC1dE4fG7hI0jK==',
+        provenance: 'Signed via KEX OIDC Attestation',
+        auditStatus: '0 vulnerabilities · Verified immutable release'
+      }
+    },
+    {
+      name: 'cron-worker',
+      version: '1.5.2',
+      distTags: { latest: '1.5.2' },
+      category: 'Back-end',
+      scope: '',
+      description: 'Redis-backed distributed cron scheduler with idempotent job leases and dead-letter queues.',
+      maintainer: '@arjun-kex',
+      updatedAt: '2026-11-14',
+      weeklyDownloads: 58900,
+      stars: 245,
+      license: 'MIT',
+      verified: true,
+      repo: 'https://git.kex.dev/arjun/cron-worker',
+      sparkline: [9, 10, 11, 11, 13, 14, 15],
+      dependencies: { '@std/http-router': '^1.2.0' },
+      readme: `## cron-worker\n\nDistributed cron worker for background indexing and tarball scanning.`,
+      files: {
+        'package.json': `{\n  "name": "cron-worker",\n  "version": "1.5.2",\n  "dependencies": { "@std/http-router": "^1.2.0" }\n}`,
+        'README.md': `# cron-worker\n\nDistributed cron scheduler.`,
+        'src/index.ts': `export function scheduleJob(expr: string, task: () => Promise<void>) {\n  return { expr, active: true, task };\n}`
+      },
+      versions: [
+        { version: '1.5.2', tag: 'latest', date: '2026-11-14', notes: 'Graceful SIGTERM drain support.' }
+      ],
+      security: {
+        shasum: 'sha512-6mN9oP2qR5sT8uV1wX4yZ7aB0cD3eF6gH9iJ2kL5mN8oP1qR4sT7uV0wX3yZ==',
+        provenance: 'Signed via KEX OIDC Attestation',
+        auditStatus: '0 vulnerabilities · Verified immutable release'
+      }
+    },
+    {
+      name: 'vite-css-tokens',
+      version: '1.1.0',
+      distTags: { latest: '1.1.0' },
+      category: 'CSS',
+      scope: '',
+      description: 'Compile JSON design tokens into typed CSS custom properties and zero-runtime utility sheets.',
+      maintainer: '@maya-ui',
+      updatedAt: '2026-11-21',
+      weeklyDownloads: 88400,
+      stars: 412,
+      license: 'MIT',
+      verified: true,
+      repo: 'https://git.kex.dev/ui/vite-css-tokens',
+      sparkline: [13, 15, 16, 17, 19, 21, 24],
+      dependencies: {},
+      readme: `## vite-css-tokens\n\nGenerate typed CSS variables from design system JSON tokens.`,
+      files: {
+        'package.json': `{\n  "name": "vite-css-tokens",\n  "version": "1.1.0",\n  "license": "MIT"\n}`,
+        'README.md': `# vite-css-tokens\n\nTyped CSS custom property generator.`,
+        'src/index.ts': `export function tokensToCss(tokens: Record<string, string>) {\n  return Object.entries(tokens).map(([k, v]) => \`--\${k}: \${v};\`).join('\\n');\n}`
+      },
+      versions: [
+        { version: '1.1.0', tag: 'latest', date: '2026-11-21', notes: 'Added light/dark color-scheme media query generation.' }
+      ],
+      security: {
+        shasum: 'sha512-1qR4sT7uV0wX3yZ6aB9cD2eF5gH8iJ1kL4mN7oP0qR3sT6uV9wX2yZ5aB8cD==',
+        provenance: 'Signed via KEX OIDC Attestation',
+        auditStatus: '0 vulnerabilities · Verified immutable release'
+      }
+    },
+    {
+      name: 'vitest-kex-runner',
+      version: '0.9.6',
+      distTags: { latest: '0.9.6' },
+      category: 'Testing',
+      scope: '',
+      description: 'Isolated workspace test runner with npm parity assertions and snapshot diffing.',
+      maintainer: '@sara-qa',
+      updatedAt: '2026-11-22',
+      weeklyDownloads: 67300,
+      stars: 289,
+      license: 'MIT',
+      verified: true,
+      repo: 'https://git.kex.dev/sara/vitest-kex-runner',
+      sparkline: [10, 12, 13, 12, 16, 18, 21],
+      dependencies: { '@kex/core': '^1.8.4', 'lcov-cov-parse': '^1.0.8' },
+      readme: `## vitest-kex-runner\n\nAutomated compatibility and unit test runner for KEX workspaces.`,
+      files: {
+        'package.json': `{\n  "name": "vitest-kex-runner",\n  "version": "0.9.6",\n  "dependencies": { "@kex/core": "^1.8.4", "lcov-cov-parse": "^1.0.8" }\n}`,
+        'README.md': `# vitest-kex-runner\n\nWorkspace test runner.`,
+        'src/index.ts': `export function runSuite(name: string) {\n  return { suite: name, passed: 42, failed: 0 };\n}`
+      },
+      versions: [
+        { version: '0.9.6', tag: 'latest', date: '2026-11-22', notes: 'Emit LCOV coverage reports automatically.' }
+      ],
+      security: {
+        shasum: 'sha512-4uV7wX0yZ3aB6cD9eF2gH5iJ8kL1mN4oP7qR0sT3uV6wX9yZ2aB5cD8eF1gH==',
+        provenance: 'Signed via KEX OIDC Attestation',
+        auditStatus: '0 vulnerabilities · Verified immutable release'
+      }
+    },
+    {
+      name: 'serial-iot-bus',
+      version: '2.1.0',
+      distTags: { latest: '2.1.0' },
+      category: 'IoT',
+      scope: '',
+      description: 'Deterministic UART, I2C, and MQTT telemetry bridge for edge microcontrollers.',
+      maintainer: '@lin-hw',
+      updatedAt: '2026-11-18',
+      weeklyDownloads: 24600,
+      stars: 194,
+      license: 'BSD-3-Clause',
+      verified: true,
+      repo: 'https://git.kex.dev/lin/serial-iot-bus',
+      sparkline: [4, 5, 5, 6, 7, 8, 9],
+      dependencies: {},
+      readme: `## serial-iot-bus\n\nLow-latency serial and MQTT framing for IoT gateways.`,
+      files: {
+        'package.json': `{\n  "name": "serial-iot-bus",\n  "version": "2.1.0",\n  "license": "BSD-3-Clause"\n}`,
+        'README.md': `# serial-iot-bus\n\nUART and MQTT telemetry bridge.`,
+        'src/index.ts': `export function openBus(port: string, baudRate = 115200) {\n  return { port, baudRate, connected: true };\n}`
+      },
+      versions: [
+        { version: '2.1.0', tag: 'latest', date: '2026-11-18', notes: 'Added ARM64 Linux prebuilt serial bindings.' }
+      ],
+      security: {
+        shasum: 'sha512-9yZ2aB5cD8eF1gH4iJ7kL0mN3oP6qR9sT2uV5wX8yZ1aB4cD7eF0gH3iJ6kL==',
+        provenance: 'Signed via KEX OIDC Attestation',
+        auditStatus: '0 vulnerabilities · Verified immutable release'
+      }
+    },
+    {
+      name: 'lcov-cov-parse',
+      version: '1.0.8',
+      distTags: { latest: '1.0.8' },
+      category: 'Coverage',
+      scope: '',
+      description: 'Fast LCOV & Istanbul coverage parser with branch threshold enforcement for CI.',
+      maintainer: '@sara-qa',
+      updatedAt: '2026-11-16',
+      weeklyDownloads: 91200,
+      stars: 176,
+      license: 'MIT',
+      verified: true,
+      repo: 'https://git.kex.dev/sara/lcov-cov-parse',
+      sparkline: [14, 14, 15, 17, 18, 20, 22],
+      dependencies: {},
+      readme: `## lcov-cov-parse\n\nParse LCOV tracefiles and enforce line/branch coverage thresholds.`,
+      files: {
+        'package.json': `{\n  "name": "lcov-cov-parse",\n  "version": "1.0.8",\n  "license": "MIT"\n}`,
+        'README.md': `# lcov-cov-parse\n\nFast LCOV coverage parser.`,
+        'src/index.ts': `export function parseLcov(raw: string) {\n  const lines = raw.split('\\n').filter(Boolean);\n  return { records: lines.length, coveragePct: 94.2 };\n}`
+      },
+      versions: [
+        { version: '1.0.8', tag: 'latest', date: '2026-11-16', notes: 'Support branch coverage summary output.' }
+      ],
+      security: {
+        shasum: 'sha512-2cD5eF8gH1iJ4kL7mN0oP3qR6sT9uV2wX5yZ8aB1cD4eF7gH0iJ3kL6mN9oP==',
+        provenance: 'Signed via KEX OIDC Attestation',
+        auditStatus: '0 vulnerabilities · Verified immutable release'
+      }
+    },
+    {
+      name: 'rn-bridge-kex',
+      version: '0.7.3',
+      distTags: { latest: '0.7.3' },
+      category: 'Mobile',
+      scope: '',
+      description: 'TurboModule-compatible native bridge and Metro resolver plugin for KEX monorepos.',
+      maintainer: '@maya-ui',
+      updatedAt: '2026-11-19',
+      weeklyDownloads: 41800,
+      stars: 263,
+      license: 'MIT',
+      verified: false,
+      repo: 'https://git.kex.dev/ui/rn-bridge-kex',
+      sparkline: [6, 7, 8, 9, 10, 11, 13],
+      dependencies: { '@kex/core': '^1.8.4' },
+      readme: `## rn-bridge-kex\n\nSymlink-friendly Metro resolver for KEX content-addressable node_modules.`,
+      files: {
+        'package.json': `{\n  "name": "rn-bridge-kex",\n  "version": "0.7.3",\n  "dependencies": { "@kex/core": "^1.8.4" }\n}`,
+        'README.md': `# rn-bridge-kex\n\nMetro resolver plugin for KEX.`,
+        'src/index.ts': `export function withKexResolver(metroConfig: Record<string, unknown>) {\n  return { ...metroConfig, unstable_enableSymlinks: true };\n}`
+      },
+      versions: [
+        { version: '0.7.3', tag: 'latest', date: '2026-11-19', notes: 'Improved iOS/Android asset hashing.' }
+      ],
+      security: {
+        shasum: 'sha512-7gH0iJ3kL6mN9oP2qR5sT8uV1wX4yZ7aB0cD3eF6gH9iJ2kL5mN8oP1qR4sT==',
+        provenance: 'Self-signed maintainer release',
+        auditStatus: '0 vulnerabilities'
+      }
+    },
+    {
+      name: 'astro-kex-adapter',
+      version: '2.0.1',
+      distTags: { latest: '2.0.1' },
+      category: 'Frameworks',
+      scope: '',
+      description: 'Zero-config deployment and workspace build adapter for Astro & SvelteKit apps on KEX.',
+      maintainer: '@maya-ui',
+      updatedAt: '2026-11-23',
+      weeklyDownloads: 53100,
+      stars: 348,
+      license: 'MIT',
+      verified: true,
+      repo: 'https://git.kex.dev/ui/astro-kex-adapter',
+      sparkline: [8, 9, 10, 12, 14, 15, 17],
+      dependencies: { '@std/http-router': '^1.2.0' },
+      readme: `## astro-kex-adapter\n\nDeploy SSR and static sites with KEX edge routing.`,
+      files: {
+        'package.json': `{\n  "name": "astro-kex-adapter",\n  "version": "2.0.1",\n  "dependencies": { "@std/http-router": "^1.2.0" }\n}`,
+        'README.md': `# astro-kex-adapter\n\nSSR & static adapter for KEX.`,
+        'src/index.ts': `export default function kexAdapter() {\n  return { name: 'astro-kex-adapter', serverEntrypoint: './server.js' };\n}`
+      },
+      versions: [
+        { version: '2.0.1', tag: 'latest', date: '2026-11-23', notes: 'Streaming SSR response headers fix.' }
+      ],
+      security: {
+        shasum: 'sha512-0kL3mN6oP9qR2sT5uV8wX1yZ4aB7cD0eF3gH6iJ9kL2mN5oP8qR1sT4uV7wX==',
+        provenance: 'Signed via KEX OIDC Attestation',
+        auditStatus: '0 vulnerabilities · Verified immutable release'
+      }
+    },
+    {
+      name: 'ros-ws-client',
+      version: '1.4.0',
+      distTags: { latest: '1.4.0' },
+      category: 'Robotics',
+      scope: '',
+      description: 'Typed WebSocket & DDS bridge client for ROS 2 topics, TF frames, and actuator telemetry.',
+      maintainer: '@lin-hw',
+      updatedAt: '2026-11-20',
+      weeklyDownloads: 18900,
+      stars: 224,
+      license: 'Apache-2.0',
+      verified: true,
+      repo: 'https://git.kex.dev/lin/ros-ws-client',
+      sparkline: [3, 4, 4, 5, 6, 7, 8],
+      dependencies: { 'serial-iot-bus': '^2.1.0' },
+      readme: `## ros-ws-client\n\nSubscribe to ROS 2 sensor topics and publish Twist commands from Node or browser.`,
+      files: {
+        'package.json': `{\n  "name": "ros-ws-client",\n  "version": "1.4.0",\n  "dependencies": { "serial-iot-bus": "^2.1.0" }\n}`,
+        'README.md': `# ros-ws-client\n\nROS 2 WebSocket & DDS client.`,
+        'src/index.ts': `export function subscribeTopic(topic: string, cb: (msg: unknown) => void) {\n  return { topic, active: true, cb };\n}`
+      },
+      versions: [
+        { version: '1.4.0', tag: 'latest', date: '2026-11-20', notes: 'Binary CDR message decoding.' }
+      ],
+      security: {
+        shasum: 'sha512-3mN6oP9qR2sT5uV8wX1yZ4aB7cD0eF3gH6iJ9kL2mN5oP8qR1sT4uV7wX0yZ==',
+        provenance: 'Signed via KEX OIDC Attestation',
+        auditStatus: '0 vulnerabilities · Verified immutable release'
+      }
+    },
+    {
+      name: 'docgen-mdx',
+      version: '2.2.0',
+      distTags: { latest: '2.2.0' },
+      category: 'Documentation',
+      scope: '',
+      description: 'Extract TypeScript JSDoc signatures and MDX guides into static registry documentation.',
+      maintainer: '@arjun-kex',
+      updatedAt: '2026-11-21',
+      weeklyDownloads: 62400,
+      stars: 305,
+      license: 'MIT',
+      verified: true,
+      repo: 'https://git.kex.dev/arjun/docgen-mdx',
+      sparkline: [10, 11, 12, 13, 14, 16, 19],
+      dependencies: { 'vite-css-tokens': '^1.1.0' },
+      readme: `## docgen-mdx\n\nGenerate clean API reference pages from TypeScript declarations and README files.`,
+      files: {
+        'package.json': `{\n  "name": "docgen-mdx",\n  "version": "2.2.0",\n  "dependencies": { "vite-css-tokens": "^1.1.0" }\n}`,
+        'README.md': `# docgen-mdx\n\nTypeScript & MDX documentation generator.`,
+        'src/index.ts': `export function buildDocs(entry: string) {\n  return { entry, pages: 12, warnings: 0 };\n}`
+      },
+      versions: [
+        { version: '2.2.0', tag: 'latest', date: '2026-11-21', notes: 'Added automatic code-block copy metadata.' }
+      ],
+      security: {
+        shasum: 'sha512-6pQ9rS2tU5vW8xY1zA4bC7dE0fG3hI6jK9lM2nO5pQ8rS1tU4vW7xY0zA3bC==',
+        provenance: 'Signed via KEX OIDC Attestation',
+        auditStatus: '0 vulnerabilities · Verified immutable release'
+      }
+    }
+  ];
+
+  const state = {
+    view: 'home',
+    selectedPkg: '@kex/core',
+    pkgTab: 'readme',
+    selectedFile: 'package.json',
+    selectedVersion: '',
+    searchQuery: '',
+    searchCategory: 'All',
+    searchSort: 'relevance',
+    profileTab: 'packages',
+    editingProfile: false,
+    user: {
+      handle: '@arjun-kex',
+      name: 'Arjun Mehta',
+      bio: 'Systems & package tooling engineer building KEX. Maintaining core resolver, CLI, and @std primitives.',
+      location: 'Bengaluru, IN',
+      website: 'https://kex.dev/@arjun-kex'
+    },
+    starred: ['@kex/core', '@ui/primitives', 'fast-semver'],
+    packages: INITIAL_PACKAGES,
+    tokens: [
+      { id: 'tok_1', name: 'ci-release-runner', prefix: 'kex_live_9f4a', scope: 'publish:all', created: '2026-10-14', lastUsed: '2h ago' },
+      { id: 'tok_2', name: 'local-macbook-pro', prefix: 'kex_live_3c8e', scope: 'publish:@kex/*', created: '2026-09-02', lastUsed: '1d ago' }
+    ],
+    orgs: [
+      { slug: '@kex', name: 'KEX Core Team', role: 'Owner', members: ['@arjun-kex (Owner)', '@maya-ui (Maintainer)', '@sara-qa (Maintainer)'] },
+      { slug: '@std', name: 'KEX Standard Modules', role: 'Owner', members: ['@arjun-kex (Owner)', '@devon-db (Maintainer)'] },
+      { slug: '@ui', name: 'UI Primitives Collective', role: 'Member', members: ['@maya-ui (Owner)', '@arjun-kex (Member)'] }
+    ]
+  };
+
+  // Helpers
+  const $ = (s, root = document) => root.querySelector(s);
+  const esc = (s) => String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+  const fmtNum = (n) => {
+    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
+    return String(n);
+  };
+  const icons = () => { try { if (window.lucide) window.lucide.createIcons(); } catch (e) {} };
+
+  let toastTimer = null;
+  function showToast(msg) {
+    const t = $('#toast');
+    $('#toast-msg').textContent = msg;
+    t.classList.add('on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('on'), 3200);
+  }
+
+  function copyText(text, label) {
+    let ok = false;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text);
+        ok = true;
+      }
+    } catch (e) {}
+    if (!ok) {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      } catch (e) {}
+    }
+    showToast(label || `Copied "${text}"`);
+  }
+
+  function sparklineSvg(arr) {
+    const w = 88, h = 24, pad = 2;
+    const min = Math.min(...arr), max = Math.max(...arr);
+    const span = max - min || 1;
+    const pts = arr.map((v, i) => {
+      const x = pad + (i / Math.max(1, arr.length - 1)) * (w - pad * 2);
+      const y = h - pad - ((v - min) / span) * (h - pad * 2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ');
+    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-label="7-day download trend" role="img"><polyline fill="none" stroke="#161617" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" points="${pts}"/></svg>`;
+  }
+
+  function bumpPatch(ver) {
+    const clean = ver.split('-')[0];
+    const parts = clean.split('.').map((n) => parseInt(n, 10) || 0);
+    while (parts.length < 3) parts.push(0);
+    parts[2] += 1;
+    return `${parts[0]}.${parts[1]}.${parts[2]}`;
+  }
+
+  function renderMarkdown(md) {
+    const lines = md.split('\n');
+    let html = '';
+    let inCode = false;
+    let codeBuf = [];
+    let inList = false;
+
+    const flushList = () => {
+      if (inList) { html += '</ul>'; inList = false; }
+    };
+    const inlineFmt = (str) => esc(str).replace(/`([^`]+)`/g, '<code class="mono" style="background:#dcdce0;padding:.1rem .35rem;border-radius:4px;font-size:.86em">$1</code>');
+
+    for (const line of lines) {
+      if (line.startsWith('```')) {
+        flushList();
+        if (!inCode) {
+          inCode = true;
+          codeBuf = [];
+        } else {
+          inCode = false;
+          const raw = codeBuf.join('\n');
+          html += `<div class="code-block"><button type="button" class="icon-btn copy-code-btn" data-copy="${esc(raw)}" style="position:absolute;top:.5rem;right:.5rem;color:#a0a0a6" aria-label="Copy snippet"><i data-lucide="copy"></i></button><pre style="margin:0;white-space:pre">${esc(raw)}</pre></div>`;
+        }
+        continue;
+      }
+      if (inCode) { codeBuf.push(line); continue; }
+      if (line.startsWith('## ')) { flushList(); html += `<h2>${inlineFmt(line.slice(3))}</h2>`; continue; }
+      if (line.startsWith('### ')) { flushList(); html += `<h3>${inlineFmt(line.slice(4))}</h3>`; continue; }
+      if (line.startsWith('- ')) {
+        if (!inList) { html += '<ul>'; inList = true; }
+        html += `<li>${inlineFmt(line.slice(2))}</li>`;
+        continue;
+      }
+      if (!line.trim()) { flushList(); continue; }
+      flushList();
+      html += `<p>${inlineFmt(line)}</p>`;
+    }
+    flushList();
+    return html;
+  }
+
+  // Routing
+  function navigate(hash) {
+    if (location.hash !== hash) location.hash = hash;
+    else applyRoute();
+  }
+
+  function applyRoute() {
+    const raw = (location.hash || '#home').slice(1);
+    if (raw.startsWith('pkg/')) {
+      const name = decodeURIComponent(raw.slice(4));
+      const found = state.packages.find((p) => p.name === name);
+      if (found) {
+        state.view = 'pkg';
+        state.selectedPkg = found.name;
+        state.selectedVersion = found.version;
+        const fileKeys = Object.keys(found.files);
+        if (!fileKeys.includes(state.selectedFile)) state.selectedFile = fileKeys[0] || 'package.json';
+      } else {
+        state.view = 'search';
+        state.searchQuery = name;
+      }
+    } else if (raw === 'search' || raw === 'profile' || raw === 'dashboard' || raw === 'home') {
+      state.view = raw;
+    } else {
+      state.view = 'home';
+    }
+    render();
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
+  // Modal helpers
+  function openModal(title, bodyHtml) {
+    $('#modal-title').textContent = title;
+    $('#modal-body').innerHTML = bodyHtml;
+    $('#modal-backdrop').classList.add('open');
+    icons();
+  }
+  function closeModal() {
+    $('#modal-backdrop').classList.remove('open');
+  }
+
+  function openPublishModal() {
+    openModal('Publish New Package', `
+      <form id="publish-form" class="form-grid">
+        <div class="form-grid two-col">
+          <div class="field">
+            <label for="pub-name">Package Name</label>
+            <input id="pub-name" class="mono" placeholder="@kex/my-pkg or my-util" required>
+          </div>
+          <div class="field">
+            <label for="pub-ver">Version</label>
+            <input id="pub-ver" class="mono" value="1.0.0" required>
+          </div>
+        </div>
+        <div class="form-grid two-col">
+          <div class="field">
+            <label for="pub-cat">Category</label>
+            <select id="pub-cat">${CATEGORIES.map((c) => `<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('')}</select>
+          </div>
+          <div class="field">
+            <label for="pub-lic">License</label>
+            <input id="pub-lic" class="mono" value="MIT" required>
+          </div>
+        </div>
+        <div class="field">
+          <label for="pub-desc">Description</label>
+          <input id="pub-desc" placeholder="Concise summary of what this package does" required>
+        </div>
+        <div class="field">
+          <label for="pub-code">src/index.ts</label>
+          <textarea id="pub-code" class="mono" rows="4">export function hello(name: string) {\n  return \`hello, \${name} from kex!\`;\n}</textarea>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:.6rem;margin-top:.4rem">
+          <button type="button" class="btn" id="pub-cancel">Cancel</button>
+          <button type="submit" class="btn btn-dark"><i data-lucide="upload"></i>Publish to KEX</button>
+        </div>
+      </form>
+    `);
+    $('#pub-cancel').onclick = closeModal;
+    $('#publish-form').onsubmit = (e) => {
+      e.preventDefault();
+      const name = $('#pub-name').value.trim().toLowerCase();
+      const ver = $('#pub-ver').value.trim() || '1.0.0';
+      const cat = $('#pub-cat').value;
+      const lic = $('#pub-lic').value.trim() || 'MIT';
+      const desc = $('#pub-desc').value.trim();
+      const code = $('#pub-code').value;
+      if (!name || !desc) { showToast('Package name and description are required.'); return; }
+      if (state.packages.some((p) => p.name === name)) { showToast(`${name} already exists in registry.`); return; }
+      const scope = name.startsWith('@') && name.includes('/') ? name.split('/')[0] : '';
+      const today = '2026-11-25';
+      const newPkg = {
+        name,
+        version: ver,
+        distTags: { latest: ver },
+        category: cat,
+        scope,
+        description: desc,
+        maintainer: state.user.handle,
+        updatedAt: today,
+        weeklyDownloads: 140,
+        stars: 1,
+        license: lic,
+        verified: true,
+        repo: `https://git.kex.dev/${state.user.handle.slice(1)}/${name.replace(/^@[^/]+\//, '')}`,
+        sparkline: [1, 2, 4, 6, 9, 12, 16],
+        dependencies: {},
+        readme: `## ${name}\n\n${desc}\n\n### Install\n\n\`\`\`bash\nkex add ${name}\n\`\`\``,
+        files: {
+          'package.json': JSON.stringify({ name, version: ver, license: lic, main: './src/index.ts' }, null, 2),
+          'README.md': `# ${name}\n\n${desc}`,
+          'src/index.ts': code
+        },
+        versions: [{ version: ver, tag: 'latest', date: today, notes: 'Initial publish to KEX Registry.' }],
+        security: {
+          shasum: 'sha512-kexNewReleaseVerifiedImmutableHash8831aBcDeFgHiJkLmNoPqRsTuVwXyZ==',
+          provenance: `Signed via KEX OIDC Attestation (${state.user.handle})`,
+          auditStatus: '0 vulnerabilities · Verified immutable release'
+        }
+      };
+      state.packages.unshift(newPkg);
+      closeModal();
+      showToast(`Published ${name}@${ver} to KEX Registry`);
+      navigate(`#pkg/${encodeURIComponent(name)}`);
+    };
+  }
+
+  // Renderers
+  function renderHeaderBar(dark = true) {
+    return `
+      <div class="top-inline ${dark ? '' : 'lt'}">
+        <button type="button" class="brand-btn" id="nav-home" aria-label="KEX Home">kex</button>
+        <div class="nav-actions">
+          <button type="button" class="btn ${dark ? 'btn-light-dk' : 'btn-dark'} btn-sm" id="nav-publish">
+            <i data-lucide="plus"></i><span>Publish</span>
+          </button>
+          <button type="button" class="pill-profile" id="nav-profile" aria-label="Open developer profile">
+            <span class="avatar-xs">AK</span>
+            <span class="mono">@arjun-kex</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderHome() {
+    const totalPkgs = state.packages.length;
+    const totalDownloads = state.packages.reduce((a, p) => a + p.weeklyDownloads, 0);
+    const scopesCount = new Set(state.packages.map((p) => p.scope).filter(Boolean)).size;
+    const verifiedCount = state.packages.filter((p) => p.verified).length;
+
+    const catCounts = {};
+    CATEGORIES.forEach((c) => { catCounts[c.name] = 0; });
+    state.packages.forEach((p) => { if (catCounts[p.category] !== undefined) catCounts[p.category]++; });
+
+    const trending = [...state.packages].sort((a, b) => b.weeklyDownloads - a.weeklyDownloads).slice(0, 6);
+    const recent = [...state.packages].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 6);
+    const officialScopes = [
+      { scope: '@kex', title: '@kex/*', desc: 'Core package manager engine, CLI router, and lockfile tooling.' },
+      { scope: '@std', title: '@std/*', desc: 'Zero-dependency standard library modules for HTTP, streams, and utilities.' },
+      { scope: '@ui', title: '@ui/*', desc: 'Accessible headless UI primitives and design token utilities.' }
+    ];
+
+    return `
+      <section class="sec-dk dk" style="padding-top:clamp(18px,2.6vh,32px)">
+        ${renderHeaderBar(true)}
+        <div class="hero-grid">
+          <div>
+            <h1 class="hero-title">kex: our own package manager and registry.</h1>
+            <p class="dk-mut" style="margin-top:1rem;max-width:52ch;font-size:1.02rem">
+              Install npm-compatible dependencies with deterministic lockfiles, or publish verified, immutable releases directly to the independent KEX Registry.
+            </p>
+            <form class="hero-search" id="home-search-form">
+              <i data-lucide="search" style="color:#a0a0a6"></i>
+              <input id="home-search-input" type="search" placeholder="Search packages, scopes, or commands..." aria-label="Search packages, scopes, or commands">
+              <span class="kbd">/</span>
+              <button type="submit" class="btn btn-light-dk btn-sm">Search</button>
+            </form>
+          </div>
+          <div>
+            <div class="pn-dk" style="padding:1.15rem">
+              <span class="mono dk-mut" style="font-size:.78rem">QUICK START</span>
+              <div class="cmd-box mono">
+                <i data-lucide="terminal" style="color:#a0a0a6"></i>
+                <code>kex install</code>
+                <button type="button" class="icon-btn" id="hero-copy-cmd" aria-label="Copy kex install command"><i data-lucide="copy"></i></button>
+              </div>
+              <p class="dk-mut" style="font-size:.84rem;margin-top:.75rem">
+                Drop-in compatible with <span class="mono" style="color:#ececee">package.json</span> and <span class="mono" style="color:#ececee">package-lock.json</span>.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="counters">
+          <div class="counter-cell"><b class="mono">${totalPkgs}</b><span>Packages</span></div>
+          <div class="counter-cell"><b class="mono">${fmtNum(totalDownloads)}</b><span>Weekly Downloads</span></div>
+          <div class="counter-cell"><b class="mono">${scopesCount}</b><span>Scopes</span></div>
+          <div class="counter-cell"><b class="mono">${verifiedCount}</b><span>Verified Releases</span></div>
+        </div>
+      </section>
+
+      <section class="sec-lt">
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;flex-wrap:wrap">
+          <div>
+            <h2 class="sec-title">Discover</h2>
+            <p class="mut" style="margin-top:.25rem;font-size:.92rem">Browse packages by ecosystem category.</p>
+          </div>
+          <button type="button" class="btn btn-sm" id="home-view-all">Browse all packages <i data-lucide="arrow-right"></i></button>
+        </div>
+        <div class="bento-grid">
+          ${CATEGORIES.map((c) => `
+            <button type="button" class="bento-card ${c.span || ''}" data-cat="${esc(c.name)}">
+              <div class="bento-top">
+                <span class="bento-ico"><i data-lucide="${c.icon}"></i></span>
+                <span class="bento-cnt mono">${catCounts[c.name] || 0} ${(catCounts[c.name] || 0) === 1 ? 'pkg' : 'pkgs'}</span>
+              </div>
+              <div>
+                <div class="bento-name">${esc(c.name)}</div>
+                <p class="bento-desc">${esc(c.desc)}</p>
+                ${c.tags ? `<div class="bento-tags">${c.tags.map((t) => `<span class="bento-tag">${esc(t)}</span>`).join('')}</div>` : ''}
+              </div>
+            </button>
+          `).join('')}
+        </div>
+      </section>
+
+      <section class="sec-lt" style="padding-top:0">
+        <h2 class="sec-title">Trending Packages</h2>
+        <div class="pkg-mini-grid">
+          ${trending.map((p) => `
+            <button type="button" class="pn pkg-mini" data-open-pkg="${esc(p.name)}">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;width:100%">
+                <span class="mono" style="font-weight:700;font-size:.98rem">${esc(p.name)}</span>
+                <span class="chip mono" style="font-size:.72rem">v${esc(p.version)}</span>
+              </div>
+              <p class="mut" style="font-size:.86rem;line-height:1.45">${esc(p.description)}</p>
+              <div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:auto;padding-top:.4rem;font-size:.78rem" class="mut mono">
+                <span>${esc(p.category)}</span>
+                <span>${fmtNum(p.weeklyDownloads)}/wk</span>
+              </div>
+            </button>
+          `).join('')}
+        </div>
+      </section>
+
+      <section class="sec-lt" style="padding-top:0">
+        <h2 class="sec-title">Recently Published</h2>
+        <div class="pkg-mini-grid">
+          ${recent.map((p) => `
+            <button type="button" class="pn pkg-mini" data-open-pkg="${esc(p.name)}">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;width:100%">
+                <span class="mono" style="font-weight:700;font-size:.98rem">${esc(p.name)}</span>
+                <span class="chip mono" style="font-size:.72rem">v${esc(p.version)}</span>
+              </div>
+              <p class="mut" style="font-size:.86rem;line-height:1.45">${esc(p.description)}</p>
+              <div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:auto;padding-top:.4rem;font-size:.78rem" class="mut mono">
+                <span>${esc(p.maintainer)}</span>
+                <span>${esc(p.updatedAt)}</span>
+              </div>
+            </button>
+          `).join('')}
+        </div>
+      </section>
+
+      <section class="sec-lt" style="padding-top:0">
+        <h2 class="sec-title">Official Scopes</h2>
+        <div class="scope-grid">
+          ${officialScopes.map((s) => {
+            const count = state.packages.filter((p) => p.scope === s.scope).length;
+            return `
+              <button type="button" class="pn scope-card" data-scope="${esc(s.scope)}">
+                <div style="display:flex;justify-content:space-between;align-items:center;width:100%">
+                  <span class="mono" style="font-weight:800;font-size:1.2rem">${esc(s.title)}</span>
+                  <span class="chip mono">${count} pkgs</span>
+                </div>
+                <p class="mut" style="font-size:.88rem">${esc(s.desc)}</p>
+              </button>
+            `;
+          }).join('')}
+        </div>
+      </section>
+    `;
+  }
+
+  function getFilteredPackages() {
+    const q = state.searchQuery.trim().toLowerCase();
+    let list = state.packages.filter((p) => {
+      const catOk = state.searchCategory === 'All' || p.category === state.searchCategory;
+      if (!catOk) return false;
+      if (!q) return true;
+      return (
+        p.name.toLowerCase().includes(q) ||
+        p.description.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q) ||
+        p.maintainer.toLowerCase().includes(q) ||
+        (p.scope && p.scope.toLowerCase().includes(q))
+      );
+    });
+    if (state.searchSort === 'downloads') {
+      list = [...list].sort((a, b) => b.weeklyDownloads - a.weeklyDownloads);
+    } else if (state.searchSort === 'updated') {
+      list = [...list].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    } else if (state.searchSort === 'name') {
+      list = [...list].sort((a, b) => a.name.localeCompare(b.name));
+    } else if (q) {
+      list = [...list].sort((a, b) => {
+        const aExact = a.name.toLowerCase().startsWith(q) ? 1 : 0;
+        const bExact = b.name.toLowerCase().startsWith(q) ? 1 : 0;
+        return bExact - aExact || b.weeklyDownloads - a.weeklyDownloads;
+      });
+    }
+    return list;
+  }
+
+  function renderSearch() {
+    const results = getFilteredPackages();
+    const allCats = ['All', ...CATEGORIES.map((c) => c.name)];
+    return `
+      <div class="wrap" style="padding-top:clamp(18px,2.6vh,32px)">
+        ${renderHeaderBar(false)}
+        <div class="search-bar-row">
+          <div class="input-box">
+            <i data-lucide="search" class="mut"></i>
+            <input id="search-input" type="search" value="${esc(state.searchQuery)}" placeholder="Search packages, scopes, or maintainers..." aria-label="Search packages">
+          </div>
+          <select id="search-sort" class="select-box" aria-label="Sort results">
+            <option value="relevance"${state.searchSort === 'relevance' ? ' selected' : ''}>Relevance</option>
+            <option value="downloads"${state.searchSort === 'downloads' ? ' selected' : ''}>Most Downloaded</option>
+            <option value="updated"${state.searchSort === 'updated' ? ' selected' : ''}>Recently Updated</option>
+            <option value="name"${state.searchSort === 'name' ? ' selected' : ''}>Name A-Z</option>
+          </select>
+        </div>
+
+        <div class="cat-scroll" role="tablist" aria-label="Filter by category">
+          ${allCats.map((c) => `
+            <button type="button" class="chip chip-btn" data-filter-cat="${esc(c)}" aria-pressed="${state.searchCategory === c}">${esc(c)}</button>
+          `).join('')}
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.6rem;font-size:.86rem" class="mut">
+          <span>Showing <b style="color:var(--ink)">${results.length}</b> ${results.length === 1 ? 'package' : 'packages'}${state.searchCategory !== 'All' ? ` in ${esc(state.searchCategory)}` : ''}</span>
+          ${state.searchQuery || state.searchCategory !== 'All' ? `<button type="button" class="btn btn-sm" id="clear-search">Clear filters</button>` : ''}
+        </div>
+
+        <div class="pkg-list">
+          ${results.length ? results.map((p) => `
+            <article class="pn pkg-card">
+              <div>
+                <div style="display:flex;flex-wrap:wrap;align-items:center;gap:.45rem">
+                  <button type="button" class="pkg-name-link mono" data-open-pkg="${esc(p.name)}">${esc(p.name)}</button>
+                  <span class="chip mono" style="font-size:.74rem">v${esc(p.version)}</span>
+                  ${p.verified ? `<span class="chip chip-solid" style="font-size:.72rem"><i data-lucide="shield-check"></i>Verified</span>` : ''}
+                  <span class="chip" style="font-size:.74rem">${esc(p.category)}</span>
+                </div>
+                <p class="mut" style="margin-top:.45rem;font-size:.92rem">${esc(p.description)}</p>
+                <div class="pkg-meta">
+                  <span class="mono">${esc(p.maintainer)}</span>
+                  <span>Updated ${esc(p.updatedAt)}</span>
+                  <span class="mono">${fmtNum(p.weeklyDownloads)} weekly downloads</span>
+                </div>
+              </div>
+              <div class="pkg-right">
+                ${sparklineSvg(p.sparkline)}
+                <button type="button" class="btn btn-dark btn-sm copy-add-btn mono" data-add="${esc(p.name)}">
+                  <i data-lucide="copy"></i>kex add ${esc(p.name)}
+                </button>
+              </div>
+            </article>
+          `).join('') : `
+            <div class="pn" style="padding:2.5rem;text-align:center">
+              <p style="font-weight:600">No packages matched your filter.</p>
+              <p class="mut" style="font-size:.9rem;margin-top:.3rem">Try clearing the search query or switching categories.</p>
+            </div>
+          `}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderPackageExplorer() {
+    const pkg = state.packages.find((p) => p.name === state.selectedPkg) || state.packages[0];
+    const isStarred = state.starred.includes(pkg.name);
+    const activeVer = state.selectedVersion || pkg.version;
+    const depEntries = Object.entries(pkg.dependencies || {});
+    const dependents = state.packages.filter((other) => other.name !== pkg.name && other.dependencies && other.dependencies[pkg.name]);
+
+    const fileKeys = Object.keys(pkg.files);
+    const activeFile = fileKeys.includes(state.selectedFile) ? state.selectedFile : fileKeys[0];
+    const fileContent = pkg.files[activeFile] || '';
+
+    let tabPanel = '';
+    if (state.pkgTab === 'readme') {
+      tabPanel = `<div class="pn md-body">${renderMarkdown(pkg.readme)}</div>`;
+    } else if (state.pkgTab === 'code') {
+      const lines = fileContent.split('\n');
+      tabPanel = `
+        <div class="code-shell">
+          <div class="file-tree">
+            <div class="mono mut" style="font-size:.74rem;padding:.25rem .5rem .5rem">FILES</div>
+            ${fileKeys.map((f) => `
+              <button type="button" class="file-item mono" data-file="${esc(f)}" aria-selected="${f === activeFile}">
+                <i data-lucide="file-code-2"></i><span>${esc(f)}</span>
+              </button>
+            `).join('')}
+          </div>
+          <div style="min-width:0">
+            <div class="code-viewer-head">
+              <span class="mono" style="font-weight:600">${esc(activeFile)}</span>
+              <button type="button" class="btn btn-sm" id="copy-file-btn"><i data-lucide="copy"></i>Copy file</button>
+            </div>
+            <div class="code-lines">
+              ${lines.map((l, idx) => `<div class="code-line"><span class="ln-no">${idx + 1}</span><span class="ln-txt">${esc(l) || ' '}</span></div>`).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    } else if (state.pkgTab === 'deps') {
+      tabPanel = `
+        <div class="form-grid two-col">
+          <div class="pn" style="padding:1.25rem">
+            <h3 style="font-size:1.05rem;margin-bottom:.75rem">Dependencies (${depEntries.length})</h3>
+            ${depEntries.length ? `<div style="display:grid;gap:.5rem">${depEntries.map(([dName, dRange]) => {
+              const exists = state.packages.some((x) => x.name === dName);
+              return `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:.55rem .7rem;border:1px solid var(--ln);border-radius:6px;background:var(--bg)">
+                  ${exists ? `<button type="button" class="pkg-name-link mono" style="font-size:.9rem" data-open-pkg="${esc(dName)}">${esc(dName)}</button>` : `<span class="mono" style="font-size:.9rem">${esc(dName)}</span>`}
+                  <span class="chip mono" style="font-size:.75rem">${esc(dRange)}</span>
+                </div>
+              `;
+            }).join('')}</div>` : `<p class="mut" style="font-size:.9rem">Zero runtime dependencies.</p>`}
+          </div>
+          <div class="pn" style="padding:1.25rem">
+            <h3 style="font-size:1.05rem;margin-bottom:.75rem">Dependents (${dependents.length})</h3>
+            ${dependents.length ? `<div style="display:grid;gap:.5rem">${dependents.map((d) => `
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:.55rem .7rem;border:1px solid var(--ln);border-radius:6px;background:var(--bg)">
+                <button type="button" class="pkg-name-link mono" style="font-size:.9rem" data-open-pkg="${esc(d.name)}">${esc(d.name)}</button>
+                <span class="chip mono" style="font-size:.75rem">v${esc(d.version)}</span>
+              </div>
+            `).join('')}</div>` : `<p class="mut" style="font-size:.9rem">No other registry packages depend on this yet.</p>`}
+          </div>
+        </div>
+      `;
+    } else if (state.pkgTab === 'versions') {
+      tabPanel = `
+        <div class="pn tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>Version</th><th>Dist-Tag</th><th>Published</th><th>Release Notes</th></tr></thead>
+            <tbody>
+              ${pkg.versions.map((v) => `
+                <tr>
+                  <td class="mono" style="font-weight:700">${esc(v.version)}</td>
+                  <td>${v.tag ? `<span class="chip chip-solid mono" style="font-size:.72rem">${esc(v.tag)}</span>` : '<span class="mut">—</span>'}</td>
+                  <td class="mono mut">${esc(v.date)}</td>
+                  <td>${esc(v.notes)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    } else if (state.pkgTab === 'security') {
+      tabPanel = `
+        <div class="pn" style="padding:1.35rem;display:grid;gap:1rem">
+          <div style="display:flex;align-items:center;gap:.6rem">
+            <i data-lucide="shield-check"></i>
+            <strong style="font-size:1.05rem">${esc(pkg.security.auditStatus)}</strong>
+          </div>
+          <div>
+            <div class="mut" style="font-size:.82rem;margin-bottom:.3rem">Tarball Integrity (SHA-512)</div>
+            <div class="code-block" style="margin:0;word-break:break-all">${esc(pkg.security.shasum)}</div>
+          </div>
+          <div>
+            <div class="mut" style="font-size:.82rem;margin-bottom:.3rem">Provenance Attestation</div>
+            <div class="pn" style="padding:.75rem 1rem;background:var(--bg);font-size:.9rem">${esc(pkg.security.provenance)}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="pkg-head-card dk" style="padding-top:clamp(18px,2.6vh,32px)">
+        ${renderHeaderBar(true)}
+        <div style="margin-bottom:.9rem">
+          <button type="button" class="btn btn-ghost-dk btn-sm" id="back-to-search"><i data-lucide="arrow-left"></i>Back to packages</button>
+        </div>
+        <div class="pkg-head-grid">
+          <div>
+            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:.55rem">
+              <h1 class="mono" style="font-size:clamp(1.6rem,3vw,2.4rem);letter-spacing:-0.04em">${esc(pkg.name)}</h1>
+              <span class="chip chip-dk mono">v${esc(activeVer)}</span>
+              ${pkg.verified ? `<span class="chip" style="background:#ececee;color:#161617;border-color:#ececee"><i data-lucide="shield-check"></i>Verified</span>` : ''}
+            </div>
+            <p class="dk-mut" style="margin-top:.65rem;max-width:60ch">${esc(pkg.description)}</p>
+            <div style="display:flex;flex-wrap:wrap;gap:.9rem;margin-top:.9rem;font-size:.84rem" class="dk-mut">
+              <span>Maintainer: <strong style="color:#ececee" class="mono">${esc(pkg.maintainer)}</strong></span>
+              <span>License: <strong style="color:#ececee" class="mono">${esc(pkg.license)}</strong></span>
+              <span>Weekly downloads: <strong style="color:#ececee" class="mono">${pkg.weeklyDownloads.toLocaleString()}</strong></span>
+            </div>
+          </div>
+          <div class="pn-dk" style="padding:1rem;display:grid;gap:.75rem">
+            <div class="cmd-box mono" style="margin-top:0">
+              <i data-lucide="terminal" style="color:#a0a0a6"></i>
+              <code>kex add ${esc(pkg.name)}</code>
+              <button type="button" class="icon-btn copy-add-btn" data-add="${esc(pkg.name)}" aria-label="Copy install command"><i data-lucide="copy"></i></button>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:center">
+              <button type="button" class="btn ${isStarred ? 'btn-light-dk' : 'btn-ghost-dk'} btn-sm" id="toggle-star-btn">
+                <i data-lucide="star"></i><span>${isStarred ? 'Starred' : 'Star'} (${pkg.stars})</span>
+              </button>
+              <select id="pkg-ver-select" class="btn btn-ghost-dk btn-sm mono" aria-label="Select version">
+                ${pkg.versions.map((v) => `<option value="${esc(v.version)}"${v.version === activeVer ? ' selected' : ''}>v${esc(v.version)}${v.tag ? ` (${v.tag})` : ''}</option>`).join('')}
+              </select>
+              <button type="button" class="btn btn-ghost-dk btn-sm" id="copy-repo-btn">
+                <i data-lucide="git-branch"></i><span>Repo</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wrap">
+        <div class="subtabs" role="tablist" aria-label="Package sections">
+          <button type="button" class="subtab" data-pkgtab="readme" aria-selected="${state.pkgTab === 'readme'}"><i data-lucide="book-open"></i>Readme</button>
+          <button type="button" class="subtab" data-pkgtab="code" aria-selected="${state.pkgTab === 'code'}"><i data-lucide="folder-code"></i>Code / Repo</button>
+          <button type="button" class="subtab" data-pkgtab="deps" aria-selected="${state.pkgTab === 'deps'}"><i data-lucide="network"></i>Dependencies</button>
+          <button type="button" class="subtab" data-pkgtab="versions" aria-selected="${state.pkgTab === 'versions'}"><i data-lucide="history"></i>Versions</button>
+          <button type="button" class="subtab" data-pkgtab="security" aria-selected="${state.pkgTab === 'security'}"><i data-lucide="shield"></i>Security</button>
+        </div>
+        ${tabPanel}
+      </div>
+    `;
+  }
+
+  function buildHeatmapHtml() {
+    let seed = 17;
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const cells = [];
+    const end = Date.UTC(2026, 10, 25);
+    for (let c = 0; c < 26; c++) {
+      for (let r = 0; r < 7; r++) {
+        const idx = c * 7 + r;
+        const we = r >= 5;
+        const q = rnd() < (we ? 0.52 : 0.14);
+        const lv = q ? 0 : Math.min(4, Math.ceil(Math.pow(rnd(), we ? 1.7 : 1.05) * 4));
+        const d = new Date(end - (26 * 7 - 1 - idx) * 864e5);
+        const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+        const count = lv === 0 ? 0 : lv * 2 + (idx % 3);
+        cells.push(`<button type="button" class="hm-cell" data-l="${lv}" title="${count} publishes on ${label}" aria-label="${count} publishes on ${label}"></button>`);
+      }
+    }
+    return `
+      <div class="pn hm-wrap">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem">
+          <span style="font-weight:700;font-size:.94rem">26-Week Publish &amp; Release Activity</span>
+          <span class="mut mono" style="font-size:.78rem">182 days · KEX Registry</span>
+        </div>
+        <div class="hm-grid">${cells.join('')}</div>
+      </div>
+    `;
+  }
+
+  function renderProfile() {
+    const owned = state.packages.filter((p) => p.maintainer === state.user.handle);
+    const totalOwnedDl = owned.reduce((a, p) => a + p.weeklyDownloads, 0);
+    const starredPkgs = state.packages.filter((p) => state.starred.includes(p.name));
+
+    let tabHtml = '';
+    if (state.profileTab === 'packages') {
+      tabHtml = `
+        <div class="pkg-mini-grid">
+          ${owned.map((p) => `
+            <button type="button" class="pn pkg-mini" data-open-pkg="${esc(p.name)}">
+              <div style="display:flex;justify-content:space-between;align-items:center;width:100%">
+                <span class="mono" style="font-weight:700">${esc(p.name)}</span>
+                <span class="chip mono" style="font-size:.72rem">v${esc(p.version)}</span>
+              </div>
+              <p class="mut" style="font-size:.85rem">${esc(p.description)}</p>
+              <span class="mut mono" style="font-size:.76rem;margin-top:auto">${fmtNum(p.weeklyDownloads)}/wk</span>
+            </button>
+          `).join('')}
+        </div>
+      `;
+    } else if (state.profileTab === 'starred') {
+      tabHtml = starredPkgs.length ? `
+        <div class="pkg-mini-grid">
+          ${starredPkgs.map((p) => `
+            <button type="button" class="pn pkg-mini" data-open-pkg="${esc(p.name)}">
+              <div style="display:flex;justify-content:space-between;align-items:center;width:100%">
+                <span class="mono" style="font-weight:700">${esc(p.name)}</span>
+                <span class="chip mono" style="font-size:.72rem">v${esc(p.version)}</span>
+              </div>
+              <p class="mut" style="font-size:.85rem">${esc(p.description)}</p>
+              <span class="mut mono" style="font-size:.76rem;margin-top:auto">${esc(p.maintainer)}</span>
+            </button>
+          `).join('')}
+        </div>
+      ` : `<div class="pn" style="padding:2rem;text-align:center" class="mut">No starred packages yet.</div>`;
+    } else {
+      tabHtml = `
+        <div class="scope-grid">
+          ${state.orgs.map((o) => `
+            <div class="pn" style="padding:1.15rem;display:grid;gap:.45rem">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span class="mono" style="font-weight:800;font-size:1.1rem">${esc(o.slug)}</span>
+                <span class="chip mono">${esc(o.role)}</span>
+              </div>
+              <div style="font-weight:600;font-size:.92rem">${esc(o.name)}</div>
+              <div class="mut mono" style="font-size:.78rem">${o.members.length} members</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    return `
+      <div class="sec-dk dk" style="padding-top:clamp(18px,2.6vh,32px);padding-bottom:2.2rem">
+        ${renderHeaderBar(true)}
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1.5rem">
+          <div style="display:flex;gap:1.25rem;align-items:flex-start;flex-wrap:wrap">
+            <div style="width:68px;height:68px;border-radius:999px;background:#ececee;color:#161617;display:grid;place-items:center;font-weight:800;font-size:1.45rem;letter-spacing:-0.04em">AK</div>
+            <div>
+              <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+                <h1 style="font-size:1.9rem">${esc(state.user.name)}</h1>
+                <span class="chip chip-dk mono">${esc(state.user.handle)}</span>
+              </div>
+              ${state.editingProfile ? `
+                <form id="profile-edit-form" style="margin-top:.75rem;display:grid;gap:.6rem;max-width:460px">
+                  <input id="prof-bio" value="${esc(state.user.bio)}" style="background:#2a2a2d;border:1px solid #3d3d41;border-radius:6px;padding:.45rem .65rem;color:#ececee" aria-label="Bio">
+                  <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                    <input id="prof-loc" value="${esc(state.user.location)}" style="flex:1;background:#2a2a2d;border:1px solid #3d3d41;border-radius:6px;padding:.45rem .65rem;color:#ececee" aria-label="Location">
+                    <input id="prof-web" value="${esc(state.user.website)}" style="flex:1;background:#2a2a2d;border:1px solid #3d3d41;border-radius:6px;padding:.45rem .65rem;color:#ececee" aria-label="Website">
+                  </div>
+                  <div style="display:flex;gap:.5rem">
+                    <button type="submit" class="btn btn-light-dk btn-sm">Save</button>
+                    <button type="button" class="btn btn-ghost-dk btn-sm" id="prof-cancel">Cancel</button>
+                  </div>
+                </form>
+              ` : `
+                <p class="dk-mut" style="margin-top:.45rem;max-width:56ch">${esc(state.user.bio)}</p>
+                <div class="dk-mut mono" style="display:flex;flex-wrap:wrap;gap:1rem;margin-top:.6rem;font-size:.8rem">
+                  <span><i data-lucide="map-pin"></i> ${esc(state.user.location)}</span>
+                  <span><i data-lucide="globe"></i> ${esc(state.user.website)}</span>
+                </div>
+              `}
+            </div>
+          </div>
+          <div style="display:flex;gap:.55rem;flex-wrap:wrap">
+            ${!state.editingProfile ? `<button type="button" class="btn btn-ghost-dk btn-sm" id="edit-profile-btn"><i data-lucide="pencil"></i>Edit profile</button>` : ''}
+            <button type="button" class="btn btn-light-dk btn-sm" id="open-dashboard-btn"><i data-lucide="layout-dashboard"></i>Publisher Dashboard</button>
+          </div>
+        </div>
+
+        <div class="counters" style="grid-template-columns:repeat(3,1fr);margin-top:1.75rem">
+          <div class="counter-cell"><b class="mono">${owned.length}</b><span>Published Packages</span></div>
+          <div class="counter-cell"><b class="mono">${fmtNum(totalOwnedDl)}</b><span>Total Weekly Downloads</span></div>
+          <div class="counter-cell"><b class="mono">${state.starred.length}</b><span>Starred</span></div>
+        </div>
+      </div>
+
+      <div class="wrap" style="display:grid;gap:1.5rem">
+        ${buildHeatmapHtml()}
+        <div>
+          <div class="subtabs" role="tablist">
+            <button type="button" class="subtab" data-proftab="packages" aria-selected="${state.profileTab === 'packages'}">Packages (${owned.length})</button>
+            <button type="button" class="subtab" data-proftab="starred" aria-selected="${state.profileTab === 'starred'}">Starred (${starredPkgs.length})</button>
+            <button type="button" class="subtab" data-proftab="orgs" aria-selected="${state.profileTab === 'orgs'}">Organizations (${state.orgs.length})</button>
+          </div>
+          ${tabHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderDashboard() {
+    const owned = state.packages.filter((p) => p.maintainer === state.user.handle);
+    return `
+      <div class="wrap" style="display:grid;gap:1.8rem;padding-top:clamp(18px,2.6vh,32px)">
+        ${renderHeaderBar(false)}
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1rem">
+          <div>
+            <span class="mono mut" style="font-size:.8rem">PUBLISHER WORKSPACE · ${esc(state.user.handle)}</span>
+            <h1 style="font-size:clamp(1.7rem,2.8vw,2.4rem);margin-top:.2rem">Publisher Dashboard</h1>
+          </div>
+          <div style="display:flex;gap:.55rem;flex-wrap:wrap">
+            <button type="button" class="btn btn-sm" id="dash-to-profile"><i data-lucide="user-round"></i>View Profile</button>
+            <button type="button" class="btn btn-dark btn-sm" id="dash-publish-btn"><i data-lucide="plus"></i>Publish Package</button>
+          </div>
+        </div>
+
+        <section>
+          <h2 class="sec-title" style="margin-bottom:.8rem">Owned Packages (${owned.length})</h2>
+          <div class="pn tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>Package</th><th>Version</th><th>Category</th><th>Weekly Downloads</th><th>Updated</th><th>Actions</th></tr></thead>
+              <tbody>
+                ${owned.map((p) => `
+                  <tr>
+                    <td><button type="button" class="pkg-name-link mono" style="font-size:.94rem" data-open-pkg="${esc(p.name)}">${esc(p.name)}</button></td>
+                    <td class="mono">v${esc(p.version)}</td>
+                    <td><span class="chip" style="font-size:.74rem">${esc(p.category)}</span></td>
+                    <td class="mono">${p.weeklyDownloads.toLocaleString()}</td>
+                    <td class="mono mut">${esc(p.updatedAt)}</td>
+                    <td>
+                      <button type="button" class="btn btn-sm bump-ver-btn" data-bump="${esc(p.name)}">
+                        <i data-lucide="arrow-up-circle"></i>Bump patch
+                      </button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section>
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.75rem;margin-bottom:.8rem">
+            <h2 class="sec-title">API Tokens (${state.tokens.length})</h2>
+          </div>
+          <div class="pn" style="padding:1rem;margin-bottom:.8rem">
+            <form id="token-form" style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:center">
+              <input id="tok-name" placeholder="Token label (e.g. github-actions-ci)" style="flex:1;min-width:200px;background:var(--bg);border:1px solid var(--ln);border-radius:6px;padding:.5rem .75rem" required>
+              <select id="tok-scope" class="select-box" style="padding:.48rem .75rem">
+                <option value="publish:all">publish:all</option>
+                <option value="publish:@kex/*">publish:@kex/*</option>
+                <option value="read:only">read:only</option>
+              </select>
+              <button type="submit" class="btn btn-dark btn-sm"><i data-lucide="key-round"></i>Create Token</button>
+            </form>
+          </div>
+          <div class="pn tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>Label</th><th>Token</th><th>Permissions</th><th>Created</th><th>Action</th></tr></thead>
+              <tbody>
+                ${state.tokens.map((t) => `
+                  <tr>
+                    <td style="font-weight:600">${esc(t.name)}</td>
+                    <td class="mono mut">${esc(t.prefix)}••••••••</td>
+                    <td><span class="chip mono" style="font-size:.74rem">${esc(t.scope)}</span></td>
+                    <td class="mono mut">${esc(t.created)}</td>
+                    <td><button type="button" class="btn btn-sm revoke-tok-btn" data-revoke="${esc(t.id)}">Revoke</button></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section>
+          <h2 class="sec-title" style="margin-bottom:.8rem">Organizations &amp; Members</h2>
+          <div class="scope-grid">
+            ${state.orgs.map((o, idx) => `
+              <div class="pn" style="padding:1.15rem;display:grid;gap:.75rem">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div>
+                    <span class="mono" style="font-weight:800;font-size:1.1rem">${esc(o.slug)}</span>
+                    <div class="mut" style="font-size:.84rem">${esc(o.name)}</div>
+                  </div>
+                  <span class="chip mono">${esc(o.role)}</span>
+                </div>
+                <div style="display:grid;gap:.3rem;font-size:.84rem" class="mono">
+                  ${o.members.map((m) => `<div style="padding:.25rem .45rem;background:var(--bg);border-radius:4px">${esc(m)}</div>`).join('')}
+                </div>
+                <form class="org-add-form" data-org-idx="${idx}" style="display:flex;gap:.4rem">
+                  <input type="text" placeholder="@handle" style="flex:1;min-width:0;background:var(--bg);border:1px solid var(--ln);border-radius:6px;padding:.38rem .6rem;font-size:.84rem" required>
+                  <button type="submit" class="btn btn-sm">Add</button>
+                </form>
+              </div>
+            `).join('')}
+          </div>
+        </section>
+      </div>
+    `;
+  }
+
+  function render() {
+    const app = $('#app');
+    if (state.view === 'home') app.innerHTML = renderHome();
+    else if (state.view === 'search') app.innerHTML = renderSearch();
+    else if (state.view === 'pkg') app.innerHTML = renderPackageExplorer();
+    else if (state.view === 'profile') app.innerHTML = renderProfile();
+    else if (state.view === 'dashboard') app.innerHTML = renderDashboard();
+    bindViewHandlers();
+    icons();
+  }
+
+  function bindViewHandlers() {
+    // Shared header & package handlers
+    const navHome = $('#nav-home');
+    if (navHome) navHome.onclick = () => navigate('#home');
+    const navProf = $('#nav-profile');
+    if (navProf) navProf.onclick = () => navigate('#profile');
+    const navPub = $('#nav-publish');
+    if (navPub) navPub.onclick = () => { navigate('#dashboard'); openPublishModal(); };
+    document.querySelectorAll('[data-open-pkg]').forEach((el) => {
+      el.addEventListener('click', () => navigate(`#pkg/${encodeURIComponent(el.dataset.openPkg)}`));
+    });
+    document.querySelectorAll('.copy-add-btn').forEach((el) => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        copyText(`kex add ${el.dataset.add}`, `Copied "kex add ${el.dataset.add}"`);
+      });
+    });
+
+    if (state.view === 'home') {
+      const form = $('#home-search-form');
+      if (form) {
+        form.onsubmit = (e) => {
+          e.preventDefault();
+          state.searchQuery = $('#home-search-input').value;
+          state.searchCategory = 'All';
+          navigate('#search');
+        };
+      }
+      const copyCmd = $('#hero-copy-cmd');
+      if (copyCmd) copyCmd.onclick = () => copyText('kex install', 'Copied "kex install"');
+      const viewAll = $('#home-view-all');
+      if (viewAll) viewAll.onclick = () => { state.searchQuery = ''; state.searchCategory = 'All'; navigate('#search'); };
+      document.querySelectorAll('[data-cat]').forEach((btn) => {
+        btn.onclick = () => {
+          state.searchCategory = btn.dataset.cat;
+          state.searchQuery = '';
+          navigate('#search');
+        };
+      });
+      document.querySelectorAll('[data-scope]').forEach((btn) => {
+        btn.onclick = () => {
+          state.searchCategory = 'All';
+          state.searchQuery = btn.dataset.scope;
+          navigate('#search');
+        };
+      });
+    }
+
+    if (state.view === 'search') {
+      const inp = $('#search-input');
+      if (inp) {
+        inp.oninput = (e) => {
+          state.searchQuery = e.target.value;
+          const pos = e.target.selectionStart;
+          render();
+          const newInp = $('#search-input');
+          if (newInp) { newInp.focus(); newInp.setSelectionRange(pos, pos); }
+        };
+      }
+      const sort = $('#search-sort');
+      if (sort) sort.onchange = (e) => { state.searchSort = e.target.value; render(); };
+      document.querySelectorAll('[data-filter-cat]').forEach((btn) => {
+        btn.onclick = () => { state.searchCategory = btn.dataset.filterCat; render(); };
+      });
+      const clr = $('#clear-search');
+      if (clr) clr.onclick = () => { state.searchQuery = ''; state.searchCategory = 'All'; render(); };
+    }
+
+    if (state.view === 'pkg') {
+      const back = $('#back-to-search');
+      if (back) back.onclick = () => navigate('#search');
+      document.querySelectorAll('[data-pkgtab]').forEach((btn) => {
+        btn.onclick = () => { state.pkgTab = btn.dataset.pkgtab; render(); };
+      });
+      document.querySelectorAll('[data-file]').forEach((btn) => {
+        btn.onclick = () => { state.selectedFile = btn.dataset.file; render(); };
+      });
+      document.querySelectorAll('.copy-code-btn').forEach((btn) => {
+        btn.onclick = () => copyText(btn.dataset.copy, 'Copied snippet');
+      });
+      const copyFileBtn = $('#copy-file-btn');
+      if (copyFileBtn) {
+        copyFileBtn.onclick = () => {
+          const pkg = state.packages.find((p) => p.name === state.selectedPkg);
+          if (pkg) copyText(pkg.files[state.selectedFile] || '', `Copied ${state.selectedFile}`);
+        };
+      }
+      const starBtn = $('#toggle-star-btn');
+      if (starBtn) {
+        starBtn.onclick = () => {
+          const pkg = state.packages.find((p) => p.name === state.selectedPkg);
+          if (!pkg) return;
+          const idx = state.starred.indexOf(pkg.name);
+          if (idx >= 0) { state.starred.splice(idx, 1); pkg.stars = Math.max(0, pkg.stars - 1); showToast(`Removed star from ${pkg.name}`); }
+          else { state.starred.push(pkg.name); pkg.stars += 1; showToast(`Starred ${pkg.name}`); }
+          render();
+        };
+      }
+      const verSel = $('#pkg-ver-select');
+      if (verSel) {
+        verSel.onchange = (e) => {
+          state.selectedVersion = e.target.value;
+          showToast(`Viewing ${state.selectedPkg}@${state.selectedVersion}`);
+          render();
+        };
+      }
+      const repoBtn = $('#copy-repo-btn');
+      if (repoBtn) {
+        repoBtn.onclick = () => {
+          const pkg = state.packages.find((p) => p.name === state.selectedPkg);
+          if (pkg) copyText(pkg.repo, `Copied repo URL: ${pkg.repo}`);
+        };
+      }
+    }
+
+    if (state.view === 'profile') {
+      document.querySelectorAll('[data-proftab]').forEach((btn) => {
+        btn.onclick = () => { state.profileTab = btn.dataset.proftab; render(); };
+      });
+      const editBtn = $('#edit-profile-btn');
+      if (editBtn) editBtn.onclick = () => { state.editingProfile = true; render(); };
+      const cancelBtn = $('#prof-cancel');
+      if (cancelBtn) cancelBtn.onclick = () => { state.editingProfile = false; render(); };
+      const editForm = $('#profile-edit-form');
+      if (editForm) {
+        editForm.onsubmit = (e) => {
+          e.preventDefault();
+          state.user.bio = $('#prof-bio').value.trim() || state.user.bio;
+          state.user.location = $('#prof-loc').value.trim() || state.user.location;
+          state.user.website = $('#prof-web').value.trim() || state.user.website;
+          state.editingProfile = false;
+          showToast('Profile updated');
+          render();
+        };
+      }
+      const openDash = $('#open-dashboard-btn');
+      if (openDash) openDash.onclick = () => navigate('#dashboard');
+    }
+
+    if (state.view === 'dashboard') {
+      const toProf = $('#dash-to-profile');
+      if (toProf) toProf.onclick = () => navigate('#profile');
+      const pubBtn = $('#dash-publish-btn');
+      if (pubBtn) pubBtn.onclick = openPublishModal;
+
+      document.querySelectorAll('.bump-ver-btn').forEach((btn) => {
+        btn.onclick = () => {
+          const pkg = state.packages.find((p) => p.name === btn.dataset.bump);
+          if (!pkg) return;
+          const nextVer = bumpPatch(pkg.version);
+          pkg.version = nextVer;
+          pkg.distTags.latest = nextVer;
+          pkg.updatedAt = '2026-11-25';
+          pkg.versions.unshift({ version: nextVer, tag: 'latest', date: '2026-11-25', notes: 'Patch release published via Publisher Dashboard.' });
+          showToast(`Bumped ${pkg.name} to v${nextVer}`);
+          render();
+        };
+      });
+
+      const tokForm = $('#token-form');
+      if (tokForm) {
+        tokForm.onsubmit = (e) => {
+          e.preventDefault();
+          const name = $('#tok-name').value.trim();
+          const scope = $('#tok-scope').value;
+          if (!name) return;
+          const randHex = Math.random().toString(16).slice(2, 6);
+          const fullToken = `kex_live_${randHex}${Math.random().toString(16).slice(2, 12)}`;
+          state.tokens.unshift({
+            id: 'tok_' + Date.now(),
+            name,
+            prefix: `kex_live_${randHex}`,
+            scope,
+            created: '2026-11-25',
+            lastUsed: 'just now'
+          });
+          copyText(fullToken, `Created token "${name}" (copied to clipboard)`);
+          render();
+        };
+      }
+
+      document.querySelectorAll('.revoke-tok-btn').forEach((btn) => {
+        btn.onclick = () => {
+          state.tokens = state.tokens.filter((t) => t.id !== btn.dataset.revoke);
+          showToast('API token revoked');
+          render();
+        };
+      });
+
+      document.querySelectorAll('.org-add-form').forEach((form) => {
+        form.onsubmit = (e) => {
+          e.preventDefault();
+          const idx = Number(form.dataset.orgIdx);
+          const inp = form.querySelector('input');
+          let handle = inp.value.trim();
+          if (!handle) return;
+          if (!handle.startsWith('@')) handle = '@' + handle;
+          state.orgs[idx].members.push(`${handle} (Maintainer)`);
+          showToast(`Added ${handle} to ${state.orgs[idx].slug}`);
+          render();
+        };
+      });
+    }
+  }
+
+  // Global Shortcuts
+  $('#modal-close').onclick = closeModal;
+  $('#modal-backdrop').onclick = (e) => { if (e.target === $('#modal-backdrop')) closeModal(); };
+  $('#toast').onclick = () => $('#toast').classList.remove('on');
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+      e.preventDefault();
+      const target = $('#home-search-input') || $('#search-input');
+      if (target) target.focus();
+      else {
+        navigate('#search');
+        setTimeout(() => { const s = $('#search-input'); if (s) s.focus(); }, 30);
+      }
+    } else if (e.key === 'Escape') {
+      closeModal();
+    }
+  });
+
+  window.addEventListener('hashchange', applyRoute);
+  applyRoute();
+})();
+</script>
+</body>
+</html>

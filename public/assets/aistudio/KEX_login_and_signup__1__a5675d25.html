@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>kex: sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;800&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<style>
+:root{--bg:#dcdcde;--ink:#161617;--pn:#ececee;--ln:#bdbdc1;--mut:#5f5f64;color-scheme:light;box-sizing:border-box}
+*{box-sizing:border-box;margin:0}
+/* everything scales with screen height, so the whole screen always fits */
+html{font-size:clamp(11px,1.7vh,16px);height:100%;overflow:hidden}
+body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font:400 1rem/1.45 'Geist',system-ui,sans-serif}
+.mono{font-family:'Geist Mono',ui-monospace,monospace}
+svg.lucide{width:1.15em;height:1.15em;stroke-width:1.7;flex:none}
+button,input{font:inherit;color:inherit}button{cursor:pointer}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.shell{height:100vh;height:100svh;display:grid;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(min-width:960px){.shell{grid-template-columns:minmax(0,5fr) minmax(0,6fr)}}
+/* left */
+.side{display:none;background:#1d1d1f;color:#ececee;padding:clamp(18px,3.4vh,56px) clamp(20px,3vw,56px);flex-direction:column;gap:1.4rem;min-height:0}
+@media(min-width:960px){.side{display:flex}}
+.brand{font-weight:800;font-size:1.7rem;letter-spacing:-.05em;line-height:1}
+.side h1{font-size:clamp(1.8rem,min(3.2vw,5.4vh),3.6rem);letter-spacing:-.045em;line-height:1.04;font-weight:800;max-width:15ch}
+.side p{color:#a0a0a6;max-width:42ch}
+.hm{flex:1;min-height:0;display:grid;grid-template-columns:repeat(18,1fr);grid-template-rows:repeat(7,1fr);gap:clamp(3px,.45vh,6px)}
+.hm i{border-radius:3px;background:#2a2a2d;opacity:0;transition:background .2s,transform .2s}
+.hm.run i{animation:cell .5s both;animation-delay:calc(var(--c)*28ms)}
+.hm i[data-l="1"]{background:#3d3d41}.hm i[data-l="2"]{background:#5c5c61}.hm i[data-l="3"]{background:#8a8a8f}.hm i[data-l="4"]{background:#ececee}
+.hm i:hover{background:#fff;transform:scale(1.12)}
+@keyframes cell{from{opacity:0;transform:scale(.5)}to{opacity:1}}
+.side small{color:#a0a0a6;display:flex;justify-content:space-between;gap:1rem}
+/* right */
+.main{display:grid;grid-template-rows:auto 1fr auto;padding:clamp(14px,3vh,44px) clamp(18px,3.2vw,64px);min-height:0;min-width:0}
+.mtop{display:flex;justify-content:space-between;align-items:center;color:var(--mut);font-size:.9rem}
+@media(min-width:960px){.mtop .brand{display:none}}
+@media(max-width:959px){.mtop .lbl{display:none}}
+.card{align-self:center;justify-self:center;width:min(100%,34rem)}
+.seg{display:flex;background:var(--ink);border-radius:999px;padding:3px;width:fit-content;margin-bottom:1.1rem}
+.seg button{border:0;background:none;padding:.4rem 1.3rem;border-radius:999px;color:#a0a0a6;transition:background .25s,color .25s}
+.seg button[aria-selected=true]{background:var(--pn);color:var(--ink)}
+h2{font-size:clamp(1.7rem,3.2vh + .6rem,2.6rem);letter-spacing:-.04em;line-height:1.05;font-weight:800}
+.sub{color:var(--mut);margin:.4rem 0 1.1rem}
+form{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.f{grid-column:span 2;min-width:0}
+body[data-view=signup] .half{grid-column:span 1}
+@media(max-width:640px){body[data-view=signup] .half{grid-column:span 2}}
+.lab{display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:.3rem}
+.lab span{color:var(--mut)}
+.in{display:flex;align-items:center;gap:.55rem;background:var(--pn);border:1px solid var(--ln);border-radius:8px;padding:0 .8rem;transition:border-color .2s,box-shadow .2s}
+.in:focus-within{border-color:var(--ink);box-shadow:0 0 0 3px #1616171a}
+.in svg{color:var(--mut)}
+.in input{flex:1;min-width:0;background:none;border:0;outline:0;padding:.7rem 0}
+.in button{background:none;border:0;display:grid;place-items:center;color:var(--mut);padding:.25rem;border-radius:6px}
+.in button:hover{color:var(--ink)}
+.err{font-size:.78rem;margin-top:.25rem;display:none;align-items:center;gap:.3rem}
+.f.bad .in{border-color:var(--ink);box-shadow:0 0 0 3px #16161722}
+.f.bad .err{display:flex}
+.meter{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin-top:.4rem}
+.meter i{height:3px;border-radius:2px;background:var(--ln);transition:background .25s}.meter i.on{background:var(--ink)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:1rem;font-size:.88rem}
+.chk{display:flex;gap:.55rem;align-items:center;cursor:pointer}
+.chk input{accent-color:var(--ink);width:1rem;height:1rem}
+.lnk{background:none;border:0;color:var(--ink);text-decoration:underline;text-underline-offset:3px;padding:0}
+.go{grid-column:span 2;display:flex;justify-content:center;align-items:center;gap:.6rem;background:var(--ink);color:var(--pn);border:0;border-radius:8px;padding:.85rem 1rem;font-weight:600;transition:transform .15s,opacity .2s}
+.seg button,.go,.lnk{white-space:nowrap}
+.go:hover{opacity:.88}.go:active{transform:scale(.985)}
+.swap{text-align:center;color:var(--mut);font-size:.9rem;margin-top:1rem}
+.su,.lo{display:none}
+body[data-view=signup] .su{display:block}
+body[data-view=signup] .meter.su{display:grid}
+body[data-view=login] .lo{display:flex}
+body[data-view=reset] .nr{display:none}
+.foot{display:flex;justify-content:space-between;gap:1rem;color:var(--mut);font-size:.8rem}
+@media(max-width:640px){.foot span:last-child{display:none}}
+.swapin{animation:pop .35s both}
+@keyframes pop{from{opacity:0;transform:translateY(6px)}}
+#toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 1.4rem);transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#161617;color:#ececee;border-radius:10px;padding:.75rem 1rem;font-size:.88rem;display:flex;gap:.7rem;align-items:center;width:max-content;max-width:min(92vw,30rem);transition:opacity .25s,transform .35s cubic-bezier(.34,1.56,.64,1);z-index:9}
+#toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+@media(prefers-reduced-motion:reduce){*{transition-duration:.01s!important;animation:none!important}.hm i{opacity:1}}
+</style>
+</head>
+<body data-view="login">
+<div class="shell">
+  <aside class="side">
+    <div class="brand">kex</div>
+    <div><h1 id="sh">Sign in to manage what you publish.</h1><p id="sp" style="margin-top:.8rem">Packages, tokens and organizations in one place.</p></div>
+    <div class="hm run" id="hm" aria-hidden="true"></div>
+    <small><span>Windows · Linux · macOS</span><span>Immutable releases</span></small>
+  </aside>
+
+  <main class="main">
+    <div class="mtop"><div class="brand">kex</div><span class="mono lbl">kex registry</span></div>
+    <div class="card" id="card">
+      <div class="seg nr" role="tablist" aria-label="Account">
+        <button role="tab" id="t-login" aria-selected="true">Log in</button>
+        <button role="tab" id="t-signup" aria-selected="false">Sign up</button>
+      </div>
+      <h2 id="h">Welcome back</h2>
+      <p class="sub" id="s">Log in with your username or email.</p>
+      <form id="form" novalidate>
+        <div class="f half su" id="f-user"><div class="lab"><label for="user">Username</label></div><div class="in"><i data-lucide="at-sign"></i><input id="user" autocomplete="username" placeholder="your-name"></div><p class="err"><i data-lucide="circle-alert"></i>3 to 32 lowercase letters, numbers or dashes.</p></div>
+        <div class="f half" id="f-id"><div class="lab"><label for="id" id="idl">Username or email</label></div><div class="in"><i data-lucide="mail"></i><input id="id" autocomplete="username" placeholder="you@company.com"></div><p class="err"><i data-lucide="circle-alert"></i><span id="ide">Enter your username or email.</span></p></div>
+        <div class="f half nr" id="f-pw"><div class="lab"><label for="pw">Password</label><span id="mh" class="su"></span></div><div class="in"><i data-lucide="lock-keyhole"></i><input id="pw" type="password" autocomplete="current-password" placeholder="8+ characters"><button type="button" id="eye" aria-label="Show password" title="Show password"><i data-lucide="eye"></i></button></div><div class="meter su" id="meter"><i></i><i></i><i></i><i></i></div><p class="err"><i data-lucide="circle-alert"></i><span id="pwe">Enter your password.</span></p></div>
+        <div class="f half su" id="f-pw2"><div class="lab"><label for="pw2">Confirm password</label></div><div class="in"><i data-lucide="lock-keyhole"></i><input id="pw2" type="password" autocomplete="new-password" placeholder="Repeat password"></div><p class="err"><i data-lucide="circle-alert"></i>Passwords don’t match.</p></div>
+        <div class="f su" id="f-tos"><label class="chk"><input type="checkbox" id="tos"><span>I agree to the terms and acceptable use policy.</span></label><p class="err"><i data-lucide="circle-alert"></i>Please accept to continue.</p></div>
+        <div class="f row lo"><label class="chk"><input type="checkbox" id="rem"><span>Keep me signed in</span></label><button type="button" class="lnk" data-go="reset">Forgot password?</button></div>
+        <button class="go" type="submit"><span id="gl">Log in</span><i data-lucide="arrow-right"></i></button>
+      </form>
+      <p class="swap" id="swap"></p>
+    </div>
+    <div class="foot"><span>© KEX</span><span>Packages are verified for integrity end to end.</span></div>
+  </main>
+</div>
+<div id="toast" role="status"><i data-lucide="info"></i><span id="tmsg"></span></div>
+
+<script>
+const $=s=>document.querySelector(s),body=document.body,RM=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const icons=()=>{try{lucide.createIcons()}catch(e){}};
+const C={
+ login:{t:'Welcome back',s:'Log in with your username or email.',b:'Log in',h:'Sign in to manage what you publish.',p:'Packages, tokens and organizations in one place.',sw:'New to KEX? <button type="button" class="lnk" data-go="signup">Create an account</button>',idl:'Username or email',ide:'Enter your username or email.',ph:'you@company.com'},
+ signup:{t:'Create your account',s:'Publish and manage packages on the KEX Registry.',b:'Create account',h:'Create your KEX account.',p:'Install from npm today and publish to KEX as it opens.',sw:'Already have an account? <button type="button" class="lnk" data-go="login">Log in</button>',idl:'Email',ide:'Enter a valid email address.',ph:'you@company.com'},
+ reset:{t:'Reset your password',s:'Enter your email and we’ll send a reset link.',b:'Send reset link',h:'Locked out? It happens.',p:'Reset your password and get back to publishing.',sw:'Remembered it? <button type="button" class="lnk" data-go="login">Back to log in</button>',idl:'Email',ide:'Enter a valid email address.',ph:'you@company.com'}};
+/* heat grid */
+const hm=$('#hm');for(let r=0;r<7;r++)for(let c=0;c<18;c++){const i=document.createElement('i');i.style.setProperty('--c',c);i.dataset.r=r;hm.appendChild(i)}
+function paint(v){let seed=v==='signup'?11:v==='reset'?5:7;const rnd=()=>(seed=seed*16807%2147483647)/2147483647;
+ hm.querySelectorAll('i').forEach(i=>{const we=i.dataset.r>=5,q=rnd()<(we?.5:.12);i.dataset.l=q?0:Math.min(4,Math.ceil(Math.pow(rnd(),we?1.8:1.1)*4))});
+ hm.classList.remove('run');void hm.offsetWidth;hm.classList.add('run')}
+let first=true;
+function setView(v,push){
+ v=C[v]?v:'login';const c=C[v];body.dataset.view=v;document.title='kex: '+(v==='signup'?'sign up':v==='reset'?'reset password':'sign in');
+ $('#t-login').setAttribute('aria-selected',v==='login');$('#t-signup').setAttribute('aria-selected',v==='signup');
+ $('#h').textContent=c.t;$('#s').textContent=c.s;$('#gl').textContent=c.b;$('#sh').textContent=c.h;$('#sp').textContent=c.p;$('#swap').innerHTML=c.sw;
+ $('#idl').textContent=c.idl;$('#ide').textContent=c.ide;$('#id').placeholder=c.ph;$('#id').autocomplete=v==='login'?'username':'email';$('#pw').autocomplete=v==='signup'?'new-password':'current-password';
+ document.querySelectorAll('.f').forEach(f=>f.classList.remove('bad'));$('#toast').classList.remove('on');
+ const card=$('#card');card.classList.remove('swapin');void card.offsetWidth;card.classList.add('swapin');paint(v);
+ if(push&&location.hash!=='#'+v)location.hash=v;
+ if(!first)setTimeout(()=>(v==='signup'?$('#user'):$('#id')).focus(),50);first=false}
+$('#t-login').onclick=()=>setView('login',true);$('#t-signup').onclick=()=>setView('signup',true);
+document.querySelector('.seg').addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){const v=body.dataset.view==='login'?'signup':'login';setView(v,true);$('#t-'+v).focus()}});
+document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g)setView(g.dataset.go,true)});
+addEventListener('hashchange',()=>setView(location.hash.slice(1)));
+$('#eye').onclick=()=>{const p=$('#pw'),s=p.type==='password';p.type=s?'text':'password';$('#pw2').type=p.type;$('#eye').innerHTML=`<i data-lucide="${s?'eye-off':'eye'}"></i>`;$('#eye').setAttribute('aria-label',s?'Hide password':'Show password');icons()};
+const score=p=>(p.length>=8)+(/[a-z]/.test(p)&&/[A-Z]/.test(p))+/\d/.test(p)+/[^A-Za-z0-9]/.test(p);
+$('#pw').addEventListener('input',e=>{const v=e.target.value,n=score(v);document.querySelectorAll('#meter i').forEach((b,i)=>b.classList.toggle('on',i<n));$('#mh').textContent=v?['Too weak','Weak','Fair','Good','Strong'][n]:''});
+const flag=(id,bad)=>{$(id).classList.toggle('bad',bad);return bad};
+let tt;const toast=m=>{$('#tmsg').textContent=m;$('#toast').classList.add('on');clearTimeout(tt);tt=setTimeout(()=>$('#toast').classList.remove('on'),5000)};
+$('#toast').onclick=()=>$('#toast').classList.remove('on');
+$('#form').addEventListener('submit',e=>{e.preventDefault();const v=body.dataset.view,id=$('#id').value.trim(),pw=$('#pw').value,em=/^\S+@\S+\.\S+$/;let bad=false;
+ if(v==='signup'){bad|=flag('#f-user',!/^[a-z0-9-]{3,32}$/.test($('#user').value));bad|=flag('#f-id',!em.test(id));$('#pwe').textContent='Use at least 8 characters.';bad|=flag('#f-pw',pw.length<8);bad|=flag('#f-pw2',!pw||$('#pw2').value!==pw);bad|=flag('#f-tos',!$('#tos').checked)}
+ else if(v==='reset'){bad|=flag('#f-id',!em.test(id))}
+ else{bad|=flag('#f-id',!id);$('#pwe').textContent='Enter your password.';bad|=flag('#f-pw',!pw)}
+ if(!bad)toast('Front-end preview: authentication isn’t connected to a registry yet, so nothing was sent.')});
+setView(location.hash.slice(1));icons();
+</script>
+</body>
+</html>
